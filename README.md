@@ -1,31 +1,80 @@
 # DMapper
 
-**DMapper** is a reflection-based object mapping library for .NET that simplifies the process of copying and transforming data between objects. It supports deep copying, recursive property mapping, and advanced mapping scenarios with custom attributes. The library is designed for high performance by leveraging caching and extension methods for a fluent API.
+
+DMapper is a lightweight .NET object mapping library designed to simplify property mapping, deep copying, and recursive property replacement.
 
 ## Features
 
-- **Deep Copy:**  
-  Create deep clones of objects using reflection or JSON serialization.
+- **Attribute-Based Mapping**: Use `[BindTo]` and `[ComplexBind]` to map properties between objects.
+- **Deep Copying**: Clone objects, including nested properties and collections.
+- **Recursive Property Replacement**: Copy matching properties from a source object to a destination object.
+- **Property Ignoring**: Skip specific properties during mapping using `[CopyIgnore]`.
+- **Efficient Performance**: Uses caching to speed up repeated operations.
 
-- **Basic & Recursive Mapping:**  
-  Map properties from a source to a destination object either at a single level or recursively.
+---
 
-- **Advanced Mapping with Custom Attributes:**  
-  Control the mapping process using attributes:
-  - `[CopyIgnore]`: Exclude properties from mapping.
-  - `[BindTo]`: Specify alternative source property names (supports dot‑notation).
-  - `[ComplexBind]`: Map nested destination properties from a specific source property.
+## Usage
 
-- **Fluent Extension Methods:**  
-  Easily invoke mapping functionality using extension methods for clean, readable code.
+### 1. Attribute-Based Property Mapping
 
-- **Performance Optimizations:**  
-  Caches parameterless constructors and property mappings to minimize reflection overhead.
+You can use attributes to specify how properties should be mapped.
 
-## Installation
+#### **Basic Mapping**
+```csharp
+public class Source
+{
+    public string Name { get; set; }
+}
 
-You can include DMapper in your project by either cloning the repository or using a NuGet package. If you are using NuGet, run the following command in the Package Manager Console:
+public class Destination
+{
+    [BindTo("Name")]
+    public string FullName { get; set; }
+}
+```
 
-```bash
-Install-Package DMapper
+### 2. Deep Copying
+
+Clone an object, including all its nested properties.
+
+```csharp
+var original = new User { Name = "Alice", Age = 25 };
+var copy = ReflectionHelper.DeepCopy(original);
+```
+
+Or copy from one type to another:
+
+```csharp
+var copiedObject = ReflectionHelper.DeepCopy<Source, Destination>(sourceObject);
+```
+
+### 3. Recursive Property Replacement
+
+Automatically copy values from a source object to a destination object.
+
+```csharp
+var updatedDestination = ReflectionHelper.ReplacePropertiesRecursive(sourceObject, destinationObject);
+```
+
+### 4. Ignoring Properties
+
+Use `[CopyIgnore]` to prevent certain properties from being copied.
+
+```csharp
+public class UserDto
+{
+    public string Username { get; set; }
+
+    [CopyIgnore]
+    public string InternalId { get; set; }
+}
+```
+
+---
+
+## License
+
+DMapper is licensed under the MIT License.
+
+
 
