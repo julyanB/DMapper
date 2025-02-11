@@ -1,6 +1,6 @@
 # DMapper
 
-DMapper is a lightweight and efficient .NET object mapping library designed to facilitate object transformation, deep copying, and recursive property binding using advanced reflection techniques.
+DMapper is a lightweight and efficient .NET object mapping library designed to simplify object transformation, deep copying, and recursive property binding using advanced reflection techniques.
 
 ---
 
@@ -17,41 +17,49 @@ DMapper is a lightweight and efficient .NET object mapping library designed to f
 
 ## Installation
 
-To use **DMapper**, simply add the source files to your .NET project. A NuGet package may be available in the future.
+To use **DMapper**, simply add the source files to your .NET project.
 
 ---
 
 ## Usage
 
-### 1. **Object Mapping with Extension Methods**
+### 1. **Mapping Objects**
 
-The `MappingExtensions` class provides convenient methods to map objects.
+DMapper provides extension methods for mapping objects fluently. Given a source object, you can map it to a new destination instance as follows:
 
-#### **Mapping a Source Object to a New Destination Instance**
 ```csharp
 using DMapper.Extensions;
 
-var destinationObject = sourceObject.MapTo<DestinationType>();
-```
-This creates a new instance of `DestinationType` and maps all matching properties.
+// Example source object
+var source = new Src
+{
+    Name = "Alice",
+    Age = 30,
+    Test = new Test
+    {
+        Name = "Nested Test",
+        Age = 20,
+        Test33 = "Some Value"
+    }
+};
 
-#### **Binding Properties from Source to Existing Destination**
-```csharp
-using DMapper.Extensions;
+// Map to a new destination instance.
+Dest destination = source.MapTo<Dest>();
 
-destinationObject.BindFrom(sourceObject);
+// Or copy properties into an existing object.
+var anotherDest = new Dest();
+source.BindFrom(anotherDest);
 ```
-This copies properties from `sourceObject` into `destinationObject`.
 
 ---
 
-### 2. **Deep Copying Objects**
+### 2. **Deep Copying**
 
 DMapper provides methods to deep copy objects, including nested properties.
 
 #### **Deep Copying the Same Type**
 ```csharp
-var copy = ReflectionHelper.DeepCopy(originalObject);
+var clone = source.DeepCopy<Src>();
 ```
 
 #### **Deep Copying Between Different Types**
@@ -77,40 +85,9 @@ This method efficiently maps properties and handles nested structures recursivel
 
 ---
 
-### 4. **Attribute-Based Property Mapping**
+### 4. **Custom Attributes**
 
-You can control how properties are mapped using attributes.
-
-#### **Basic Mapping with `[BindTo]`**
-```csharp
-public class Source
-{
-    public string Name { get; set; }
-}
-
-public class Destination
-{
-    [BindTo("Name")]
-    public string FullName { get; set; }
-}
-```
-This maps `Source.Name` to `Destination.FullName`.
-
-#### **Complex Mapping with `[ComplexBind]`**
-```csharp
-public class Source
-{
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-}
-
-public class Destination
-{
-    [ComplexBind("FullName", "FirstName, LastName")]
-    public string FullName { get; set; }
-}
-```
-This combines `FirstName` and `LastName` into `FullName`.
+DMapper provides attributes to control how properties are mapped.
 
 #### **Ignoring Properties with `[CopyIgnore]`**
 ```csharp
@@ -124,23 +101,160 @@ public class UserDto
 ```
 Properties marked with `[CopyIgnore]` will not be copied during mapping.
 
+#### **Binding Properties with `[BindTo]`**
+```csharp
+using DMapper.Attributes;
+
+public class Dest
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    
+    // Maps from one of "Test2", "Test3", or "Test4". If none exist, it falls back to "Test".
+    [BindTo("Test2, Test3, Test4")]
+    public string Test { get; set; }
+    
+    // Maps src.Name into dest.Dest2.Name.
+    [ComplexBind("Dest2.Name", "Name")]
+    public Dest2 Dest2 { get; set; }
+}
+
+public class Dest2
+{
+    public string Name { get; set; }
+}
+
+public class Src
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public Test Test { get; set; }
+}
+
+public class Test
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public string Test33 { get; set; }
+}
+```
+
 ---
 
-## Performance Optimizations
+### 5. **Fluent API with Extension Methods**
 
-- **Efficient Reflection with Caching**: The library caches mappings and constructors to avoid redundant processing.
-- **Cyclical Reference Handling**: The `ReferenceComparer` ensures objects are not processed multiple times in recursive mappings.
-- **Safe Property Assignments**: Uses `Guard.IsNotNull` to prevent null reference errors.
+DMapper exposes extension methods for a fluent API, making the code easy to read and maintain:
+
+```csharp
+using DMapper.Extensions;
+
+Dest destination = source.MapTo<Dest>();
+
+// Get or set a property value using extension methods:
+string name = source.GetPropertyValue<string>("Name");
+source.SetPropertyValue("Name", "Bob");
+```
 
 ---
 
-## Contributions
+### 6. **Complete Example**
 
-We welcome contributions! Feel free to fork this repository and submit pull requests.
+Below is a complete example that demonstrates how to use DMapper in a console application. All the example classes and usage are contained in one file for clarity.
+
+```csharp
+using System;
+using DMapper.Extensions;
+using DMapper.Attributes;
+
+namespace DMapper.Example
+{
+    // Define mapping classes.
+    public class Dest
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+        
+        // Maps from one of "Test2", "Test3", or "Test4". If none exist, falls back to "Test".
+        [BindTo("Test2, Test3, Test4")]
+        public string Test { get; set; }
+        
+        // Maps src.Name into dest.Dest2.Name.
+        [ComplexBind("Dest2.Name", "Name")]
+        public Dest2 Dest2 { get; set; }
+    }
+
+    public class Dest2
+    {
+        public string Name { get; set; }
+    }
+
+    public class Src
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public Test Test { get; set; }
+    }
+
+    public class Test
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public string Test33 { get; set; }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            // Create a source object.
+            var src = new Src
+            {
+                Name = "Alice",
+                Age = 30,
+                Test = new Test
+                {
+                    Name = "Nested Test",
+                    Age = 20,
+                    Test33 = "Value from Test.Test33"
+                }
+            };
+
+            // Map to a new destination object using the fluent extension method.
+            Dest dest = src.MapTo<Dest>();
+
+            Console.WriteLine($"Name: {dest.Name}");             // Expected Output: Alice
+            Console.WriteLine($"Age: {dest.Age}");               // Expected Output: 30
+            Console.WriteLine($"Test: {dest.Test}");             // Output depends on available source properties
+            Console.WriteLine($"Dest2.Name: {dest.Dest2?.Name}");  // Expected Output: Alice (via ComplexBind)
+
+            // Deep copy example:
+            var srcClone = src.DeepCopy<Src>();
+            Console.WriteLine($"Clone Name: {srcClone.Name}");   // Expected Output: Alice
+        }
+    }
+}
+```
 
 ---
 
-## License
+## 🔥 Design & Structure
 
-DMapper is licensed under the **MIT License**.
+DMapper is structured to promote **separation of concerns** and **modularity**:
 
+- **Core Reflection Helpers**:
+  - General reflection utilities (e.g., deep copy methods, property setters, caching of constructors).
+
+- **Mapping Implementations**:
+  - **Basic Reflection Mapping**: For simple, top‑level mapping.
+  - **Recursive Reflection Mapping**: For deep, recursive mapping.
+  - **Advanced Reflection Mapping**: For scenarios using custom attributes such as `[BindTo]` and `[ComplexBind]`.
+
+- **Mapping Attributes**:
+  - Custom attributes (`[CopyIgnore]`, `[BindTo]`, `[ComplexBind]`) control mapping behavior.
+
+- **Extension Methods**:
+  - A fluent API that wraps the core functionality, making the mapper easy to use.
+
+---
+
+🚀 **Happy Coding with DMapper!**
