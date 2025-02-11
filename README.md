@@ -1,25 +1,87 @@
 # DMapper
 
+DMapper is a lightweight and efficient .NET object mapping library designed to facilitate object transformation, deep copying, and recursive property binding using advanced reflection techniques.
 
-DMapper is a lightweight .NET object mapping library designed to simplify property mapping, deep copying, and recursive property replacement.
+---
 
 ## Features
 
-- **Attribute-Based Mapping**: Use `[BindTo]` and `[ComplexBind]` to map properties between objects.
-- **Deep Copying**: Clone objects, including nested properties and collections.
-- **Recursive Property Replacement**: Copy matching properties from a source object to a destination object.
-- **Property Ignoring**: Skip specific properties during mapping using `[CopyIgnore]`.
-- **Efficient Performance**: Uses caching to speed up repeated operations.
+- **Advanced Recursive Property Mapping (`V4`)**: Copies properties from a source object to a destination object, including nested properties.
+- **Extension Methods for Easy Mapping**: Utilize `.MapTo<TDestination>()` and `.BindFrom<T>()` for seamless object transformations.
+- **Attribute-Based Mapping**: Use `[BindTo]` and `[ComplexBind]` for precise control over property binding.
+- **Deep Copying**: Clone objects with all their properties, including nested and complex types.
+- **Property Ignoring**: Skip unwanted properties using `[CopyIgnore]`.
+- **Caching for Performance**: Utilizes `ConcurrentDictionary` to cache mappings and constructors for optimized execution.
+
+---
+
+## Installation
+
+To use **DMapper**, simply add the source files to your .NET project. A NuGet package may be available in the future.
 
 ---
 
 ## Usage
 
-### 1. Attribute-Based Property Mapping
+### 1. **Object Mapping with Extension Methods**
 
-You can use attributes to specify how properties should be mapped.
+The `MappingExtensions` class provides convenient methods to map objects.
 
-#### **Basic Mapping**
+#### **Mapping a Source Object to a New Destination Instance**
+```csharp
+using DMapper.Extensions;
+
+var destinationObject = sourceObject.MapTo<DestinationType>();
+```
+This creates a new instance of `DestinationType` and maps all matching properties.
+
+#### **Binding Properties from Source to Existing Destination**
+```csharp
+using DMapper.Extensions;
+
+destinationObject.BindFrom(sourceObject);
+```
+This copies properties from `sourceObject` into `destinationObject`.
+
+---
+
+### 2. **Deep Copying Objects**
+
+DMapper provides methods to deep copy objects, including nested properties.
+
+#### **Deep Copying the Same Type**
+```csharp
+var copy = ReflectionHelper.DeepCopy(originalObject);
+```
+
+#### **Deep Copying Between Different Types**
+```csharp
+var destinationCopy = ReflectionHelper.DeepCopy<SourceType, DestinationType>(sourceObject);
+```
+
+---
+
+### 3. **Recursive Property Replacement (V4)**
+
+The `V4` version of `ReplacePropertiesRecursive` supports:
+- **Nested property mapping**
+- **Collections and complex types**
+- **Attribute-based custom mappings**
+- **Handling cyclical references**
+
+```csharp
+var updatedDestination = ReflectionHelper.ReplacePropertiesRecursive_V4(destinationObject, sourceObject);
+```
+
+This method efficiently maps properties and handles nested structures recursively.
+
+---
+
+### 4. **Attribute-Based Property Mapping**
+
+You can control how properties are mapped using attributes.
+
+#### **Basic Mapping with `[BindTo]`**
 ```csharp
 public class Source
 {
@@ -32,34 +94,25 @@ public class Destination
     public string FullName { get; set; }
 }
 ```
+This maps `Source.Name` to `Destination.FullName`.
 
-### 2. Deep Copying
-
-Clone an object, including all its nested properties.
-
+#### **Complex Mapping with `[ComplexBind]`**
 ```csharp
-var original = new User { Name = "Alice", Age = 25 };
-var copy = ReflectionHelper.DeepCopy(original);
+public class Source
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+
+public class Destination
+{
+    [ComplexBind("FullName", "FirstName, LastName")]
+    public string FullName { get; set; }
+}
 ```
+This combines `FirstName` and `LastName` into `FullName`.
 
-Or copy from one type to another:
-
-```csharp
-var copiedObject = ReflectionHelper.DeepCopy<Source, Destination>(sourceObject);
-```
-
-### 3. Recursive Property Replacement
-
-Automatically copy values from a source object to a destination object.
-
-```csharp
-var updatedDestination = ReflectionHelper.ReplacePropertiesRecursive(sourceObject, destinationObject);
-```
-
-### 4. Ignoring Properties
-
-Use `[CopyIgnore]` to prevent certain properties from being copied.
-
+#### **Ignoring Properties with `[CopyIgnore]`**
 ```csharp
 public class UserDto
 {
@@ -69,12 +122,25 @@ public class UserDto
     public string InternalId { get; set; }
 }
 ```
+Properties marked with `[CopyIgnore]` will not be copied during mapping.
+
+---
+
+## Performance Optimizations
+
+- **Efficient Reflection with Caching**: The library caches mappings and constructors to avoid redundant processing.
+- **Cyclical Reference Handling**: The `ReferenceComparer` ensures objects are not processed multiple times in recursive mappings.
+- **Safe Property Assignments**: Uses `Guard.IsNotNull` to prevent null reference errors.
+
+---
+
+## Contributions
+
+We welcome contributions! Feel free to fork this repository and submit pull requests.
 
 ---
 
 ## License
 
-DMapper is licensed under the MIT License.
-
-
+DMapper is licensed under the **MIT License**.
 
