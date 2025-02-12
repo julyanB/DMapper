@@ -25,6 +25,7 @@ public static class ReflectionHelper
 
         propertyInfo.SetValue(instance, newValue, null);
     }
+
     public static T DeepCopy<T>(T original)
     {
         if (original == null)
@@ -199,13 +200,15 @@ public static class ReflectionHelper
     ///   - [BindTo] on destination properties (with dot‑notation and fallback to the destination name)
     ///   - [RootBindTo] on destination properties to map a nested destination property from a source property.
     /// </summary>
-    public static TDest ReplacePropertiesRecursive_V4<TDest, TSrc>(TDest destination, TSrc source)
+    public static TDestination ReplacePropertiesRecursive_V4<TDestination, TSource>(TDestination destination, TSource source)
     {
+        // Here, rootSource and currentSource start as the same object.
         var visited = new HashSet<object>(new ReferenceComparer());
-        ReplacePropertiesRecursiveInternal_V4(source, destination, visited);
-        ProcessRootBindToAttributes_V4(source, destination);
+        ReplacePropertiesRecursiveInternal_V4(source, source, destination, visited);
+        ProcessComplexBindAttributesRecursive_V4(source, destination);
         return destination;
     }
+
 
     #region V3 Helper Methods
 
@@ -456,32 +459,40 @@ public static class ReflectionHelper
     /// <summary>
     /// Internal recursive implementation for property mapping.
     /// </summary>
-    private static object ReplacePropertiesRecursiveInternal_V4(object source, object destination, HashSet<object> visited)
+    private static object ReplacePropertiesRecursiveInternal_V4(object rootSource, object currentSource, object destination, HashSet<object> visited)
     {
-        if (source == null || destination == null)
+        if (currentSource == null || destination == null)
             return destination;
 
-        // Avoid cyclical loops.
-        if (!IsSimpleType(source.GetType()) && !visited.Add(source))
+        // Avoid cycles.
+        if (!IsSimpleType(currentSource.GetType()) && !visited.Add(currentSource))
             return destination;
 
-        Type sourceType = source.GetType();
+        Type currentSourceType = currentSource.GetType();
         Type destinationType = destination.GetType();
 
-        // Get (or build) cached mappings between destination properties and matching source property chains.
-        var mappings = GetPropertyMappings_V4(sourceType, destinationType);
+        // For nested mappings (currentSource != rootSource), use the current source type for building property chains.
+        Type effectiveSourceType = (currentSourceType == rootSource.GetType())
+            ? rootSource.GetType()
+            : currentSourceType;
+
+        // Use the effective source type for caching.
+        var mappings = GetPropertyMappings_V4(effectiveSourceType, effectiveSourceType, destinationType);
+
         foreach (var mapping in mappings)
         {
-            // Retrieve the nested source value from the chain.
-            var srcValue = GetValueFromChain_V4(source, mapping.SourcePropertyChain);
+            var bindToAttr = mapping.DestinationProperty.GetCustomAttribute<Attributes.BindToAttribute>();
+            // When a BindTo attribute is present and we are at the top level, evaluate against rootSource.
+            object srcValue = (bindToAttr != null && currentSourceType == rootSource.GetType())
+                ? GetValueFromChain_V4(rootSource, mapping.SourcePropertyChain)
+                : GetValueFromChain_V4(currentSource, mapping.SourcePropertyChain);
+
             if (srcValue == null)
                 continue;
 
-            // Determine the type of the final property in the chain.
             Type srcPropType = mapping.SourcePropertyChain.Last().PropertyType;
             Type destPropType = mapping.DestinationProperty.PropertyType;
 
-            // Handle enum conversion (assumes the source value’s ToString() exactly matches an enum name).
             if (destPropType.IsEnum)
             {
                 string stringValue = srcValue.ToString();
@@ -494,14 +505,12 @@ public static class ReflectionHelper
                 continue;
             }
 
-            // Handle collections (arrays and IList) except strings.
             if (typeof(IEnumerable).IsAssignableFrom(destPropType) && destPropType != typeof(string))
             {
-                HandleCollection_V4(mapping.DestinationProperty, destination, srcValue, visited);
+                HandleCollection_V4(rootSource, mapping.DestinationProperty, destination, srcValue, visited);
                 continue;
             }
 
-            // Handle complex (non-string) types recursively.
             if (srcPropType.IsClass && srcPropType != typeof(string))
             {
                 if (destPropType.IsAbstract || destPropType.IsInterface)
@@ -517,18 +526,16 @@ public static class ReflectionHelper
                     mapping.DestinationProperty.SetValue(destination, destValue);
                 }
 
-                ReplacePropertiesRecursiveInternal_V4(srcValue, destValue, visited);
+                ReplacePropertiesRecursiveInternal_V4(rootSource, srcValue, destValue, visited);
             }
             else
             {
-                // Handle simple types.
                 if (destPropType.IsAssignableFrom(srcValue.GetType()))
                 {
                     mapping.DestinationProperty.SetValue(destination, srcValue);
                 }
                 else
                 {
-                    // Try using a TypeConverter first.
                     var converter = TypeDescriptor.GetConverter(srcValue);
                     if (converter != null && converter.CanConvertTo(destPropType))
                     {
@@ -537,7 +544,6 @@ public static class ReflectionHelper
                     }
                     else if (srcValue is IConvertible && typeof(IConvertible).IsAssignableFrom(destPropType))
                     {
-                        // Only attempt conversion if both source and destination are convertible.
                         var convertedValue = Convert.ChangeType(srcValue, destPropType);
                         mapping.DestinationProperty.SetValue(destination, convertedValue);
                     }
@@ -548,73 +554,140 @@ public static class ReflectionHelper
         return destination;
     }
 
+
+    private static void ProcessComplexBindAttributesRecursive_V4(object rootSource, object destination)
+    {
+        if (rootSource == null || destination == null)
+            return;
+
+        var destType = destination.GetType();
+        foreach (var prop in destType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            // Process any ComplexBind (RootBindTo) attributes on this property.
+            var complexBindAttrs = prop.GetCustomAttributes<ComplexBindAttribute>().ToArray();
+            if (complexBindAttrs.Length > 0)
+            {
+                foreach (var attr in complexBindAttrs)
+                {
+                    for (int i = 0; i < Math.Max(attr.PropNames.Count, attr.Froms.Count); i++)
+                    {
+                        string destPath = i < attr.PropNames.Count ? attr.PropNames[i] : attr.PropNames[0];
+                        string sourcePath = i < attr.Froms.Count ? attr.Froms[i] : attr.Froms[0];
+
+                        // If the destination path starts with the property name, remove it.
+                        string relativeDestPath = destPath;
+                        if (destPath.StartsWith(prop.Name + ".", StringComparison.OrdinalIgnoreCase))
+                            relativeDestPath = destPath.Substring(prop.Name.Length + 1);
+
+                        var sourceChain = GetPropertyChainForPath_V4(rootSource.GetType(), sourcePath);
+                        if (sourceChain == null)
+                            continue;
+                        object srcValue = GetValueFromChain_V4(rootSource, sourceChain);
+                        if (srcValue == null)
+                            continue;
+
+                        // Get (or create) the object held by the property.
+                        object destObj = prop.GetValue(destination);
+                        if (destObj == null)
+                        {
+                            var ctor = MapperHelperCaches.GetParameterlessConstructor(prop.PropertyType);
+                            if (ctor == null)
+                                continue;
+                            destObj = ctor.Invoke(null);
+                            prop.SetValue(destination, destObj);
+                        }
+
+                        // Set the nested destination property using the relative path.
+                        SetValueForNestedPath_V4(destObj, relativeDestPath, srcValue);
+                        break; // Optionally, break after the first successful bind for this attribute.
+                    }
+                }
+            }
+
+            // Recurse into inner objects if the property is a non-string class.
+            if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+            {
+                object innerDest = prop.GetValue(destination);
+                if (innerDest != null)
+                {
+                    ProcessComplexBindAttributesRecursive_V4(rootSource, innerDest);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Retrieves (or builds) the mapping between destination properties and source property chains.
     /// Supports dot‑notation in the [BindTo] attribute and always adds the destination property name as a fallback.
     /// </summary>
-    private static List<PropertyMapping> GetPropertyMappings_V4(Type sourceType, Type destinationType)
+    private static List<PropertyMapping> GetPropertyMappings_V4(Type currentSourceType, Type dummy, Type destinationType)
     {
-        return MapperHelperCaches.MappingCache.GetOrAdd((sourceType, destinationType), key =>
-        {
-            var mappings = new List<PropertyMapping>();
-            var destProperties = destinationType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var destProperty in destProperties)
+        // We ignore the second parameter and use currentSourceType for building chains.
+        return MapperHelperCaches.MappingCacheV4.GetOrAdd(
+            (currentSourceType, currentSourceType, destinationType),
+            key =>
             {
-                if (!destProperty.CanWrite)
-                    continue;
-                if (destProperty.GetCustomAttribute<CopyIgnoreAttribute>() != null)
-                    continue;
-
-                // Build candidate source names.
-                List<string> sourceNames = new List<string>();
-                var bindToAttr = destProperty.GetCustomAttribute<BindToAttribute>();
-                if (bindToAttr?.PropNames is { Count: > 0 })
-                    sourceNames.AddRange(bindToAttr.PropNames);
-                // Always add the destination property name as a fallback.
-                if (!sourceNames.Contains(destProperty.Name))
-                    sourceNames.Add(destProperty.Name);
-
-                PropertyInfo[] sourceChain = null;
-                foreach (var name in sourceNames)
+                var mappings = new List<PropertyMapping>();
+                var destProperties = destinationType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var destProperty in destProperties)
                 {
-                    // Allow dot-notation for nested properties.
-                    var parts = name.Split('.', StringSplitOptions.RemoveEmptyEntries);
-                    List<PropertyInfo> chain = new List<PropertyInfo>();
-                    Type currentType = sourceType;
-                    bool valid = true;
-                    foreach (var part in parts)
+                    if (!destProperty.CanWrite)
+                        continue;
+                    if (destProperty.GetCustomAttribute<Attributes.CopyIgnoreAttribute>() != null)
+                        continue;
+
+                    List<string> sourceNames = new List<string>();
+                    var bindToAttr = destProperty.GetCustomAttribute<BindToAttribute>();
+                    if (bindToAttr?.PropNames is { Count: > 0 })
+                        sourceNames.AddRange(bindToAttr.PropNames);
+                    // Always add the destination property name as fallback.
+                    if (!sourceNames.Contains(destProperty.Name))
+                        sourceNames.Add(destProperty.Name);
+
+                    PropertyInfo[] sourceChain = null;
+                    // Always build the chain on the current source type.
+                    Type typeToUse = currentSourceType;
+
+                    foreach (var name in sourceNames)
                     {
-                        var prop = currentType.GetProperty(part, BindingFlags.Public | BindingFlags.Instance);
-                        if (prop == null)
+                        var parts = name.Split('.', StringSplitOptions.RemoveEmptyEntries);
+                        List<PropertyInfo> chain = new List<PropertyInfo>();
+                        Type current = typeToUse;
+                        bool valid = true;
+                        foreach (var part in parts)
                         {
-                            valid = false;
-                            break;
+                            var prop = current.GetProperty(part, BindingFlags.Public | BindingFlags.Instance);
+                            if (prop == null)
+                            {
+                                valid = false;
+                                break;
+                            }
+
+                            chain.Add(prop);
+                            current = prop.PropertyType;
                         }
 
-                        chain.Add(prop);
-                        currentType = prop.PropertyType;
+                        if (valid && chain.Count > 0)
+                        {
+                            sourceChain = chain.ToArray();
+                            break; // Use the first valid chain.
+                        }
                     }
 
-                    if (valid && chain.Count > 0)
+                    if (sourceChain != null)
                     {
-                        sourceChain = chain.ToArray();
-                        break; // Use the first valid chain.
+                        mappings.Add(new PropertyMapping
+                        {
+                            DestinationProperty = destProperty,
+                            SourcePropertyChain = sourceChain
+                        });
                     }
                 }
 
-                if (sourceChain != null)
-                {
-                    mappings.Add(new PropertyMapping
-                    {
-                        DestinationProperty = destProperty,
-                        SourcePropertyChain = sourceChain
-                    });
-                }
-            }
-
-            return mappings;
-        });
+                return mappings;
+            });
     }
+
 
     /// <summary>
     /// Retrieves a nested property value by traversing the provided property chain.
@@ -635,19 +708,23 @@ public static class ReflectionHelper
     /// <summary>
     /// Handles collections (arrays and IList types).
     /// </summary>
-    private static void HandleCollection_V4(PropertyInfo destinationProperty, object destination, object sourceValue, HashSet<object> visited)
+    private static void HandleCollection_V4(object rootSource, PropertyInfo destinationProperty, object destination, object sourceValue, HashSet<object> visited)
     {
         var destPropType = destinationProperty.PropertyType;
+
         if (destPropType.IsArray)
         {
             if (!(sourceValue is Array sourceArray))
                 return;
+
             var elementType = destPropType.GetElementType();
             var destArray = Array.CreateInstance(elementType, sourceArray.Length);
+
             for (int i = 0; i < sourceArray.Length; i++)
             {
                 var sourceElement = sourceArray.GetValue(i);
                 object destElement;
+
                 if (sourceElement != null && elementType.IsClass && elementType != typeof(string))
                 {
                     var ctor = MapperHelperCaches.GetParameterlessConstructor(elementType);
@@ -658,7 +735,8 @@ public static class ReflectionHelper
                     else
                     {
                         destElement = ctor.Invoke(null);
-                        ReplacePropertiesRecursiveInternal_V4(sourceElement, destElement, visited);
+                        // Pass rootSource, sourceElement as current, destElement, and visited.
+                        ReplacePropertiesRecursiveInternal_V4(rootSource, sourceElement, destElement, visited);
                     }
                 }
                 else
@@ -689,6 +767,7 @@ public static class ReflectionHelper
             {
                 var genericArguments = destPropType.IsGenericType ? destPropType.GetGenericArguments() : null;
                 var elementType = genericArguments?.FirstOrDefault() ?? typeof(object);
+
                 foreach (var sourceElement in sourceList)
                 {
                     object destElement;
@@ -702,7 +781,8 @@ public static class ReflectionHelper
                         else
                         {
                             destElement = ctor.Invoke(null);
-                            ReplacePropertiesRecursiveInternal_V4(sourceElement, destElement, visited);
+                            // Again, pass the rootSource to the recursive mapping call.
+                            ReplacePropertiesRecursiveInternal_V4(rootSource, sourceElement, destElement, visited);
                         }
                     }
                     else
@@ -790,7 +870,6 @@ public static class ReflectionHelper
                     break; // Optionally, break after the first successful bind for this attribute.
                 }
             }
-
         }
     }
 

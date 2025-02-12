@@ -9,8 +9,8 @@ public class MapperHelperCaches
     #region Caching Fields
 
     // Cache mapping information between source and destination types.
-    public static readonly ConcurrentDictionary<(Type sourceType, Type destType), List<PropertyMapping>> MappingCache =
-        new ConcurrentDictionary<(Type, Type), List<PropertyMapping>>();
+    public static readonly ConcurrentDictionary<(Type currentSourceType, Type rootSourceType, Type destinationType), List<PropertyMapping>> MappingCacheV4 =
+        new ConcurrentDictionary<(Type, Type, Type), List<PropertyMapping>>();
 
     // Cache for parameterless constructors to avoid repeated reflection.
     public static readonly ConcurrentDictionary<Type, ConstructorInfo> CtorCache =
