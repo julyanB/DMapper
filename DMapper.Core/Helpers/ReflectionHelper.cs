@@ -750,43 +750,47 @@ public static class ReflectionHelper
         var props = destType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var prop in props)
         {
-            var rootBindAttr = prop.GetCustomAttribute<ComplexBindAttribute>();
-            if (rootBindAttr == null)
+            var rootBindAttrs = prop.GetCustomAttributes<ComplexBindAttribute>().ToArray();
+            if (rootBindAttrs.Length == 0)
                 continue;
 
-            // Process each candidate pair (using the first successful one).
-            for (int i = 0; i < Math.Max(rootBindAttr.PropNames.Count, rootBindAttr.Froms.Count); i++)
+            foreach (var rootBindAttr in rootBindAttrs)
             {
-                string destPath = i < rootBindAttr.PropNames.Count ? rootBindAttr.PropNames[i] : rootBindAttr.PropNames[0];
-                string sourcePath = i < rootBindAttr.Froms.Count ? rootBindAttr.Froms[i] : rootBindAttr.Froms[0];
-
-                // If the destination path starts with the decorated property name, remove it.
-                string relativeDestPath = destPath;
-                if (destPath.StartsWith(prop.Name + ".", StringComparison.OrdinalIgnoreCase))
-                    relativeDestPath = destPath.Substring(prop.Name.Length + 1);
-
-                var sourceChain = GetPropertyChainForPath_V4(source.GetType(), sourcePath);
-                if (sourceChain == null)
-                    continue;
-                object srcValue = GetValueFromChain_V4(source, sourceChain);
-                if (srcValue == null)
-                    continue;
-
-                // Get (or create) the object held by the property.
-                object destObj = prop.GetValue(destination);
-                if (destObj == null)
+                // Process each attribute separately.
+                for (int i = 0; i < Math.Max(rootBindAttr.PropNames.Count, rootBindAttr.Froms.Count); i++)
                 {
-                    var ctor = MapperHelperCaches.GetParameterlessConstructor(prop.PropertyType);
-                    if (ctor == null)
-                        continue;
-                    destObj = ctor.Invoke(null);
-                    prop.SetValue(destination, destObj);
-                }
+                    string destPath = i < rootBindAttr.PropNames.Count ? rootBindAttr.PropNames[i] : rootBindAttr.PropNames[0];
+                    string sourcePath = i < rootBindAttr.Froms.Count ? rootBindAttr.Froms[i] : rootBindAttr.Froms[0];
 
-                // Set the nested destination property using the relative path.
-                SetValueForNestedPath_V4(destObj, relativeDestPath, srcValue);
-                break; // Use the first candidate that works.
+                    // If the destination path starts with the decorated property name, remove it.
+                    string relativeDestPath = destPath;
+                    if (destPath.StartsWith(prop.Name + ".", StringComparison.OrdinalIgnoreCase))
+                        relativeDestPath = destPath.Substring(prop.Name.Length + 1);
+
+                    var sourceChain = GetPropertyChainForPath_V4(source.GetType(), sourcePath);
+                    if (sourceChain == null)
+                        continue;
+                    object srcValue = GetValueFromChain_V4(source, sourceChain);
+                    if (srcValue == null)
+                        continue;
+
+                    // Get (or create) the object held by the property.
+                    object destObj = prop.GetValue(destination);
+                    if (destObj == null)
+                    {
+                        var ctor = MapperHelperCaches.GetParameterlessConstructor(prop.PropertyType);
+                        if (ctor == null)
+                            continue;
+                        destObj = ctor.Invoke(null);
+                        prop.SetValue(destination, destObj);
+                    }
+
+                    // Set the nested destination property using the relative path.
+                    SetValueForNestedPath_V4(destObj, relativeDestPath, srcValue);
+                    break; // Optionally, break after the first successful bind for this attribute.
+                }
             }
+
         }
     }
 

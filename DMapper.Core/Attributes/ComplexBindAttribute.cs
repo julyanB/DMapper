@@ -7,7 +7,7 @@ namespace DMapper.Attributes;
 /// [RootBindTo("Dest2.Name", "Name")]
 /// will set dest.Dest2.Name = src.Name.
 /// </summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 public class ComplexBindAttribute : Attribute
 {
     public List<string> PropNames { get; set; }
