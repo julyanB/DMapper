@@ -1,14 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>DMapper</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>DMapper</Title>
+        <Authors>DMapper Team</Authors>
+        <Description>A lightweight .NET object mapping library for deep copying and attribute-based property mapping.</Description>
+        <Copyright>Copyright © 2025 DMapper</Copyright>
+        <PackageProjectUrl>https://github.com/julyan97/DMapper</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/julyan97/DMapper</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>object-mapper reflection mapping copy nested-objects</PackageTags>
+        <PackageReleaseNotes>Initial release of DMapper with advanced recursive mapping, attribute-based configuration, and deep copy features.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+        <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
     </ItemGroup>
-
 </Project>
