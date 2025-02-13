@@ -8,14 +8,15 @@ public class FlattenedProperty
     public object Value { get; set; }
     public Type PropertyType { get; set; }
 
+    // Next and Previous pointers for chaining flattened properties.
+    public FlattenedProperty Next { get; set; }
+    public FlattenedProperty Previous { get; set; }
+
     public FlattenedProperty(object value, Type propertyType)
     {
         Value = value;
         PropertyType = propertyType;
     }
 
-    public override string ToString()
-    {
-        return $"{PropertyType.Name} -> {Value}";
-    }
+    public override string ToString() => $"{PropertyType.Name} -> {Value}";
 }

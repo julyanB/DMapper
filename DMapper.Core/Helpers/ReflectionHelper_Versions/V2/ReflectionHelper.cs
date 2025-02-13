@@ -52,7 +52,7 @@ public static partial class ReflectionHelper
                         destinationProperty.SetValue(destination, destinationValue);
                     }
 
-                    ReplacePropertiesRecursive(sourceValue, destinationValue);
+                    ReplacePropertiesRecursive_V1(sourceValue, destinationValue);
                 }
                 else
                 {

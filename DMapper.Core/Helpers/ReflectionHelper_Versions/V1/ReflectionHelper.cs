@@ -11,7 +11,7 @@ public static partial class ReflectionHelper
     /// <param name="template"></param>
     /// <param name="currentPath"></param>
     /// <returns></returns>
-    public static TDest ReplacePropertiesRecursive<TSrc, TDest>(TSrc source, TDest destination)
+    public static TDest ReplacePropertiesRecursive_V1<TSrc, TDest>(TSrc source, TDest destination)
     {
         var type = source.GetType();
         var properties = type.GetProperties();
@@ -30,7 +30,7 @@ public static partial class ReflectionHelper
                 if (propertyValue is not null && property.PropertyType.IsClass && propertyValue is not string)
                 {
                     // If property is another class (but not a string), continue exploring its properties
-                    ReplacePropertiesRecursive(propertyValue, destination);
+                    ReplacePropertiesRecursive_V1(propertyValue, destination);
                 }
                 else if (propertyValue is not null)
                 {

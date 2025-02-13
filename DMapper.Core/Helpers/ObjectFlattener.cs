@@ -7,11 +7,9 @@ namespace DMapper.Helpers;
 public static class ObjectFlattener
 {
     private const string DefaultSeparator = ".";
+
     #region Public Flatten Overloads
 
-    /// <summary>
-    /// Flattens an object instance into a FlattenResult.
-    /// </summary>
     public static FlattenResult Flatten(object obj, string prefix = "", string separator = DefaultSeparator)
     {
         var dict = FlattenObject(obj, prefix, separator);
@@ -19,18 +17,12 @@ public static class ObjectFlattener
         return new FlattenResult(flattenedType, dict);
     }
 
-    /// <summary>
-    /// Flattens the structure of a given Type into a FlattenResult.
-    /// </summary>
     public static FlattenResult Flatten(Type type, string prefix = "", string separator = DefaultSeparator)
     {
         var dict = FlattenStructure(type, prefix, separator);
         return new FlattenResult(type, dict);
     }
 
-    /// <summary>
-    /// Generic overload to flatten a Type.
-    /// </summary>
     public static FlattenResult Flatten<T>(string prefix = "", string separator = DefaultSeparator)
     {
         return Flatten(typeof(T), prefix, separator);
@@ -43,11 +35,8 @@ public static class ObjectFlattener
     private static Dictionary<string, FlattenedProperty> FlattenObject(object obj, string prefix, string separator)
     {
         var dict = new Dictionary<string, FlattenedProperty>(StringComparer.OrdinalIgnoreCase);
-        if (obj == null)
-            return dict;
-
+        if (obj == null) return dict;
         Type type = obj.GetType();
-
         if (IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix.Trim(separator.ToCharArray());
@@ -57,10 +46,8 @@ public static class ObjectFlattener
 
         if (obj is IEnumerable enumerable && !(obj is string))
         {
-            // Add an entry for the collection itself.
             string collKey = string.IsNullOrEmpty(prefix) ? "Value" : prefix.Trim(separator.ToCharArray());
             dict[collKey] = new FlattenedProperty(obj, obj.GetType());
-
             int index = 0;
             foreach (var item in enumerable)
             {
@@ -76,9 +63,7 @@ public static class ObjectFlattener
 
         foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            if (!prop.CanRead)
-                continue;
-
+            if (!prop.CanRead) continue;
             object value;
             try
             {
@@ -89,10 +74,7 @@ public static class ObjectFlattener
                 continue;
             }
 
-            string key = string.IsNullOrEmpty(prefix)
-                ? prop.Name
-                : $"{prefix}{separator}{prop.Name}";
-
+            string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}{separator}{prop.Name}";
             if (value == null || IsSimpleType(prop.PropertyType))
             {
                 dict[key] = new FlattenedProperty(value, prop.PropertyType);
@@ -111,9 +93,7 @@ public static class ObjectFlattener
     private static Dictionary<string, FlattenedProperty> FlattenStructure(Type type, string prefix, string separator)
     {
         var dict = new Dictionary<string, FlattenedProperty>(StringComparer.OrdinalIgnoreCase);
-        if (type == null)
-            return dict;
-
+        if (type == null) return dict;
         if (IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix;
@@ -123,16 +103,13 @@ public static class ObjectFlattener
 
         if (typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string))
         {
-            // Add an entry for the collection type itself.
             string collKey = string.IsNullOrEmpty(prefix) ? "Value" : prefix;
             dict[collKey] = new FlattenedProperty(null, type);
-
             Type elementType = null;
             if (type.IsArray)
                 elementType = type.GetElementType();
             else if (type.IsGenericType)
                 elementType = type.GetGenericArguments().FirstOrDefault();
-
             if (elementType != null)
             {
                 string key = string.IsNullOrEmpty(prefix) ? "[*]" : $"{prefix}[*]";
@@ -146,10 +123,7 @@ public static class ObjectFlattener
 
         foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            string key = string.IsNullOrEmpty(prefix)
-                ? prop.Name
-                : $"{prefix}{separator}{prop.Name}";
-
+            string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}{separator}{prop.Name}";
             if (IsSimpleType(prop.PropertyType))
             {
                 dict[key] = new FlattenedProperty(null, prop.PropertyType);
@@ -165,39 +139,23 @@ public static class ObjectFlattener
         return dict;
     }
 
-    public static bool IsSimpleType(Type type)
+    private static bool IsSimpleType(Type type)
     {
-        if (type.IsEnum)
-            return true;
-        if (type.IsPrimitive)
-            return true;
-
+        if (type.IsEnum) return true;
+        if (type.IsPrimitive) return true;
         var simpleTypes = new HashSet<Type>
         {
-            typeof(string),
-            typeof(decimal),
-            typeof(DateTime),
-            typeof(DateTimeOffset),
-            typeof(TimeSpan),
-            typeof(Guid),
-            typeof(Uri),
-            typeof(Version)
+            typeof(string), typeof(decimal), typeof(DateTime),
+            typeof(DateTimeOffset), typeof(TimeSpan), typeof(Guid),
+            typeof(Uri), typeof(Version)
         };
-
         Type dateOnly = Type.GetType("System.DateOnly");
-        if (dateOnly != null)
-            simpleTypes.Add(dateOnly);
+        if (dateOnly != null) simpleTypes.Add(dateOnly);
         Type timeOnly = Type.GetType("System.TimeOnly");
-        if (timeOnly != null)
-            simpleTypes.Add(timeOnly);
-
-        if (simpleTypes.Contains(type))
-            return true;
-
+        if (timeOnly != null) simpleTypes.Add(timeOnly);
+        if (simpleTypes.Contains(type)) return true;
         var underlying = Nullable.GetUnderlyingType(type);
-        if (underlying != null)
-            return IsSimpleType(underlying);
-
+        if (underlying != null) return IsSimpleType(underlying);
         return false;
     }
 
