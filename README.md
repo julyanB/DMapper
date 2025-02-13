@@ -128,8 +128,217 @@ Destination1 destination = source.MapTo<Destination1>();
 ```
 
 ## Test Cases
+Below are several test cases demonstrating different mapping scenarios:
 
-DMapper includes multiple test cases demonstrating various mapping scenarios. See the full list in the documentation.
+Test 1: Basic Mapping with [BindTo] on Top-Level Properties
+```csharp
+public class Source1
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Source { get; set; }
+    public Source2 Source2 { get; set; } = new Source2();
+}
+public class Source2
+{
+    public string SourceName2 { get; set; } = ""SourceName2"";
+}
+public class Destination1
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    [BindTo(""Source"")]
+    public string Destination { get; set; }
+    public Destination2 Source2 { get; set; }
+    public string DontChange { get; set; } = ""DontChange"";
+}
+public class Destination2
+{
+    [BindTo(""SourceName2"")]
+    public string DestinationName3 { get; set; }
+}
+```
+
+Test 2: Inner Mapping with [BindTo] on Nested Property
+
+```csharp
+
+public class SourceTest2
+{
+    public string Outer { get; set; } = ""OuterValue"";
+    public InnerSource Inner { get; set; } = new InnerSource();
+}
+public class InnerSource
+{
+    public string InnerProp { get; set; } = ""InnerValue"";
+}
+public class DestinationTest2
+{
+    public string Outer { get; set; }
+    public InnerDest Inner { get; set; }
+}
+public class InnerDest
+{
+    [BindTo(""InnerProp"")]
+    public string MyInner { get; set; }
+}
+
+
+Test 3: ComplexBind Mapping Using an Absolute Destination Key
+
+public class SourceTest3
+{
+    public string Data { get; set; } = ""DataFromSource"";
+    public NestedSource Nested { get; set; } = new NestedSource();
+}
+public class NestedSource
+{
+    public string Info { get; set; } = ""NestedInfo"";
+}
+public class DestinationTest3
+{
+    public string Data { get; set; }
+    [ComplexBind(""NestedDestination.Info"", ""Nested.Info"")]
+    public NestedDest NestedDestination { get; set; }
+}
+public class NestedDest
+{
+    public string Info { get; set; }
+}
+Test 4: ComplexBind on Inner Property with an Absolute Key
+
+public class SourceTest4
+{
+    public string Extra { get; set; } = ""ExtraValue"";
+}
+public class DestinationTest4
+{
+    [ComplexBind(""Sub.Info"", ""Extra"")]
+    public SubDest Sub { get; set; }
+}
+public class SubDest
+{
+    public string Info { get; set; }
+}
+Test 5: Array Mapping with [BindTo]
+```
+
+```csharp
+
+public class SourceTest5
+{
+    public string[] Items { get; set; } = new string[] { ""Item1"", ""Item2"", ""Item3"" };
+}
+public class DestinationTest5
+{
+    [BindTo(""Items"")]
+    public string[] Items { get; set; }
+}
+Test 6: Fallback Mapping Using [BindTo] Candidate
+```
+
+```csharp
+public class SourceTest6
+{
+    public string X { get; set; } = ""FallbackValue"";
+    public string B { get; set; } = ""Beta"";
+}
+public class DestinationTest6
+{
+    [BindTo(""X"")]
+    public string B { get; set; }
+}
+Test 7: Nested Relative [BindTo] with a Candidate like ""B.C""
+```
+
+```csharp
+public class SourceTest7
+{
+    public NestedSource7 A { get; set; } = new NestedSource7();
+}
+public class NestedSource7
+{
+    public NestedSource7Inner B { get; set; } = new NestedSource7Inner();
+}
+public class NestedSource7Inner
+{
+    public string C { get; set; } = ""Value7"";
+}
+public class DestinationTest7
+{
+    public DestinationTest7A A { get; set; } = new DestinationTest7A();
+}
+public class DestinationTest7A
+{
+    [BindTo(""B.C"")]
+    public string X { get; set; }
+}
+Test 8: Absolute [BindTo] with a Full Path
+```
+
+```csharp
+public class SourceTest8
+{
+    public string M { get; set; } = ""MValue"";
+    public NestedSource8 N { get; set; } = new NestedSource8();
+}
+public class NestedSource8
+{
+    public string O { get; set; } = ""OValue"";
+}
+public class DestinationTest8
+{
+    [BindTo(""N.O"")]
+    public string X { get; set; }
+}
+Test 9: Nested Relative [BindTo] on an Inner Property
+```
+
+```csharp
+public class SourceTest9
+{
+    public NestedSource9 A { get; set; } = new NestedSource9();
+}
+public class NestedSource9
+{
+    public string Y { get; set; } = ""Value9"";
+}
+public class DestinationTest9
+{
+    public DestinationTest9A A { get; set; } = new DestinationTest9A();
+}
+public class DestinationTest9A
+{
+    [BindTo(""Y"")]
+    public string Z { get; set; }
+}
+```
+
+Design & Structure
+Flattening Engine:
+Converts objects and types into a flattened dictionary with Next/Previous pointers.
+Mapping Engine (v5):
+Uses the flattened representation to merge source and destination values. It processes [BindTo] (both relative and absolute) and [ComplexBind] attributes.
+Rehydration:
+The merged dictionary is rehydrated into a fully instantiated destination object, with intermediate objects and collections created as needed.
+Fluent API:
+Extension methods simplify mapping code, making it clear and maintainable.
+Contributing
+Feel free to fork the repository and submit pull requests to add features or fix bugs.
+
+License
+DMapper is licensed under the MIT License.
+
+Happy coding with DMapper! ";
+
+arduino
+Copy
+Edit
+        File.WriteAllText("README.md", readme);
+        Console.WriteLine("README.md has been generated.");
+    }
+}
+}
 
 ## Design & Structure
 
