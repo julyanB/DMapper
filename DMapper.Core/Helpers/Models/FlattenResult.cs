@@ -104,17 +104,63 @@ public class FlattenResult
 
                 if (i == parts.Length - 1)
                 {
+                    // Final segment for an indexed collection.
                     if (prop.PropertyType.IsArray && value != null && value is IList list)
                     {
                         Type elementType = prop.PropertyType.GetElementType();
                         Array array = Array.CreateInstance(elementType, list.Count);
-                        list.CopyTo(array, 0);
+                        for (int j = 0; j < list.Count; j++)
+                        {
+                            var srcElem = list[j];
+                            object destElem;
+                            if (srcElem != null && !ObjectFlattener.IsSimpleType(elementType))
+                            {
+                                destElem = Activator.CreateInstance(elementType);
+                                destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
+                            }
+                            else
+                            {
+                                destElem = srcElem;
+                            }
+
+                            array.SetValue(destElem, j);
+                        }
+
                         value = array;
                     }
                     else if (prop.PropertyType.IsArray && value == null)
                     {
                         Type elementType = prop.PropertyType.GetElementType();
                         value = Array.CreateInstance(elementType, 0);
+                    }
+                    else if (!prop.PropertyType.IsArray &&
+                             typeof(IList).IsAssignableFrom(prop.PropertyType) &&
+                             value is IList srcList)
+                    {
+                        // For generic IList (e.g., List<T>) map each element individually.
+                        Type elementType = prop.PropertyType.IsGenericType
+                            ? prop.PropertyType.GetGenericArguments()[0]
+                            : typeof(object);
+                        var destListType = typeof(List<>).MakeGenericType(elementType);
+                        var destList = Activator.CreateInstance(destListType) as IList;
+                        for (int j = 0; j < srcList.Count; j++)
+                        {
+                            var srcElem = srcList[j];
+                            object destElem;
+                            if (srcElem != null && !ObjectFlattener.IsSimpleType(elementType))
+                            {
+                                destElem = Activator.CreateInstance(elementType);
+                                destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
+                            }
+                            else
+                            {
+                                destElem = srcElem;
+                            }
+
+                            destList.Add(destElem);
+                        }
+
+                        value = destList;
                     }
 
                     ilist[index] = value;
@@ -132,11 +178,70 @@ public class FlattenResult
                     return;
                 if (i == parts.Length - 1)
                 {
-                    // Handle enum conversion
+                    // If the destination property is a collection and the incoming value is an IList,
+                    // map each element individually.
+                    if (typeof(IEnumerable).IsAssignableFrom(prop.PropertyType) &&
+                        prop.PropertyType != typeof(string) && value is IList srcList)
+                    {
+                        Type elementType = null;
+                        if (prop.PropertyType.IsArray)
+                            elementType = prop.PropertyType.GetElementType();
+                        else if (prop.PropertyType.IsGenericType)
+                            elementType = prop.PropertyType.GetGenericArguments()[0];
+                        else
+                            elementType = typeof(object);
+
+                        if (prop.PropertyType.IsArray)
+                        {
+                            Array destArray = Array.CreateInstance(elementType, srcList.Count);
+                            for (int j = 0; j < srcList.Count; j++)
+                            {
+                                var srcElem = srcList[j];
+                                object destElem;
+                                if (srcElem != null && !ObjectFlattener.IsSimpleType(elementType))
+                                {
+                                    destElem = Activator.CreateInstance(elementType);
+                                    destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
+                                }
+                                else
+                                {
+                                    destElem = srcElem;
+                                }
+
+                                destArray.SetValue(destElem, j);
+                            }
+
+                            value = destArray;
+                        }
+                        else
+                        {
+                            var destListType = typeof(List<>).MakeGenericType(elementType);
+                            var destList = Activator.CreateInstance(destListType) as IList;
+                            for (int j = 0; j < srcList.Count; j++)
+                            {
+                                var srcElem = srcList[j];
+                                object destElem;
+                                if (srcElem != null && !ObjectFlattener.IsSimpleType(elementType))
+                                {
+                                    destElem = Activator.CreateInstance(elementType);
+                                    destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
+                                }
+                                else
+                                {
+                                    destElem = srcElem;
+                                }
+
+                                destList.Add(destElem);
+                            }
+
+                            value = destList;
+                        }
+                    }
+
+                    // Handle enum conversion.
                     Type targetType = prop.PropertyType;
                     if (value != null)
                     {
-                        // If destination is a nullable enum, get its underlying type.
                         if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         {
                             Type underlying = Nullable.GetUnderlyingType(targetType);
@@ -187,6 +292,7 @@ public class FlattenResult
             }
         }
     }
+
 
     private static void FinalizeArrays(object instance)
     {
