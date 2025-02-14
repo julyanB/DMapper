@@ -245,6 +245,8 @@ public class CollectionItemDest
 
 /////////////////////////
 // Test 12: Mapping nested collections (a list of lists).
+
+// Todo: Add support for nested collections. Currently, the nested collections are not supported currently.
 public class NestedCollectionSource
 {
     public List<List<CollectionItemSource>> NestedItems { get; set; } = new List<List<CollectionItemSource>>
