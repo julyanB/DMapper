@@ -139,7 +139,7 @@ public static class ObjectFlattener
         return dict;
     }
 
-    private static bool IsSimpleType(Type type)
+    public static bool IsSimpleType(Type type)
     {
         if (type.IsEnum) return true;
         if (type.IsPrimitive) return true;
