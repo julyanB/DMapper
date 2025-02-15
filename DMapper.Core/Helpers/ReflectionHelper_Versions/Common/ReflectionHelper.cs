@@ -66,20 +66,23 @@ public static partial class ReflectionHelper
         return dest;
     }
     
-    private static bool IsSimpleType(Type type)
+    public static bool IsSimpleType(Type type)
     {
+        if (type.IsEnum) return true;
         if (type.IsPrimitive) return true;
-        if (type == typeof(string)) return true;
-        if (type == typeof(decimal)) return true;
-        if (type == typeof(DateTime)) return true;
-        if (type == typeof(DateTimeOffset)) return true;
-        if (type == typeof(TimeSpan)) return true;
-        if (type == typeof(Guid)) return true;
-
-        var underlyingType = Nullable.GetUnderlyingType(type);
-        if (underlyingType != null)
-            return IsSimpleType(underlyingType);
-
+        var simpleTypes = new HashSet<Type>
+        {
+            typeof(string), typeof(decimal), typeof(DateTime),
+            typeof(DateTimeOffset), typeof(TimeSpan), typeof(Guid),
+            typeof(Uri), typeof(Version)
+        };
+        Type dateOnly = Type.GetType("System.DateOnly");
+        if (dateOnly != null) simpleTypes.Add(dateOnly);
+        Type timeOnly = Type.GetType("System.TimeOnly");
+        if (timeOnly != null) simpleTypes.Add(timeOnly);
+        if (simpleTypes.Contains(type)) return true;
+        var underlying = Nullable.GetUnderlyingType(type);
+        if (underlying != null) return IsSimpleType(underlying);
         return false;
     }
 }

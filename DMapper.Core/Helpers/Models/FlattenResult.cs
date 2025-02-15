@@ -142,7 +142,7 @@ public class FlattenResult
     /// <summary>
     /// Processes a normal (non-collection) property segment.
     /// </summary>
-    private static object ProcessPropertySegment(object current, string segment, bool isLast, ref object value)
+    private static object ProcessPropertySegment(object current, string segment, bool isLast, ref object value) 
     {
         PropertyInfo prop = current.GetType().GetProperty(segment, BindingFlags.Public | BindingFlags.Instance);
         if (prop == null)
@@ -184,7 +184,7 @@ public class FlattenResult
                     Type elementType = prop.PropertyType.GetElementType();
                     value = Array.CreateInstance(elementType, 0);
                 }
-                else if (value == null && !ObjectFlattener.IsSimpleType(prop.PropertyType))
+                else if (value == null && !ReflectionHelper.IsSimpleType(prop.PropertyType))
                 {
                     value = Activator.CreateInstance(prop.PropertyType);
                 }
@@ -231,7 +231,7 @@ public class FlattenResult
             {
                 var srcElem = srcList[j];
                 object destElem;
-                if (srcElem != null && !ObjectFlattener.IsSimpleType(elementType))
+                if (srcElem != null && !ReflectionHelper.IsSimpleType(elementType))
                 {
                     destElem = Activator.CreateInstance(elementType);
                     destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
@@ -264,7 +264,7 @@ public class FlattenResult
             {
                 var srcElem = srcList2[j];
                 object destElem;
-                if (srcElem != null && !ObjectFlattener.IsSimpleType(elementType))
+                if (srcElem != null && !ReflectionHelper.IsSimpleType(elementType))
                 {
                     destElem = Activator.CreateInstance(elementType);
                     destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
@@ -314,7 +314,7 @@ public class FlattenResult
                 list.CopyTo(array, 0);
                 prop.SetValue(instance, array);
             }
-            else if (!ObjectFlattener.IsSimpleType(prop.PropertyType))
+            else if (!ReflectionHelper.IsSimpleType(prop.PropertyType))
             {
                 FinalizeArrays(value);
             }

@@ -37,7 +37,7 @@ public static class ObjectFlattener
         var dict = new Dictionary<string, FlattenedProperty>(StringComparer.OrdinalIgnoreCase);
         if (obj == null) return dict;
         Type type = obj.GetType();
-        if (IsSimpleType(type))
+        if (ReflectionHelper.IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix.Trim(separator.ToCharArray());
             dict[key] = new FlattenedProperty(obj, type);
@@ -75,7 +75,7 @@ public static class ObjectFlattener
             }
 
             string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}{separator}{prop.Name}";
-            if (value == null || IsSimpleType(prop.PropertyType))
+            if (value == null || ReflectionHelper.IsSimpleType(prop.PropertyType))
             {
                 dict[key] = new FlattenedProperty(value, prop.PropertyType);
             }
@@ -94,7 +94,7 @@ public static class ObjectFlattener
     {
         var dict = new Dictionary<string, FlattenedProperty>(StringComparer.OrdinalIgnoreCase);
         if (type == null) return dict;
-        if (IsSimpleType(type))
+        if (ReflectionHelper.IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix;
             dict[key] = new FlattenedProperty(null, type);
@@ -124,7 +124,7 @@ public static class ObjectFlattener
         foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}{separator}{prop.Name}";
-            if (IsSimpleType(prop.PropertyType))
+            if (ReflectionHelper.IsSimpleType(prop.PropertyType))
             {
                 dict[key] = new FlattenedProperty(null, prop.PropertyType);
             }
@@ -137,26 +137,6 @@ public static class ObjectFlattener
         }
 
         return dict;
-    }
-
-    public static bool IsSimpleType(Type type)
-    {
-        if (type.IsEnum) return true;
-        if (type.IsPrimitive) return true;
-        var simpleTypes = new HashSet<Type>
-        {
-            typeof(string), typeof(decimal), typeof(DateTime),
-            typeof(DateTimeOffset), typeof(TimeSpan), typeof(Guid),
-            typeof(Uri), typeof(Version)
-        };
-        Type dateOnly = Type.GetType("System.DateOnly");
-        if (dateOnly != null) simpleTypes.Add(dateOnly);
-        Type timeOnly = Type.GetType("System.TimeOnly");
-        if (timeOnly != null) simpleTypes.Add(timeOnly);
-        if (simpleTypes.Contains(type)) return true;
-        var underlying = Nullable.GetUnderlyingType(type);
-        if (underlying != null) return IsSimpleType(underlying);
-        return false;
     }
 
     #endregion
