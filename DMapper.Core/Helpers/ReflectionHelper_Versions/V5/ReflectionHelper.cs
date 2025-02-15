@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using DMapper.Attributes;
 using DMapper.Comparers;
+using DMapper.Constants;
 using DMapper.Helpers.Models;
 
 namespace DMapper.Helpers
@@ -16,16 +17,15 @@ namespace DMapper.Helpers
     /// </summary>
     public static partial class ReflectionHelper
     {
-        private const string DefaultSeparator = ".";
 
         public static TDestination ReplacePropertiesRecursive_V5<TDestination, TSource>(TDestination destination, TSource source)
         {
             // 1. Flatten the source object (actual instance, with values).
-            FlattenResult srcFlatten = ObjectFlattener.Flatten(source, separator: DefaultSeparator);
+            FlattenResult srcFlatten = ObjectFlattener.Flatten(source, separator: GlobalConstants.DefaultDotSeparator);
             // 2. Flatten the destination structure from its type (values are initially null).
-            FlattenResult destStructure = ObjectFlattener.Flatten(typeof(TDestination), separator: DefaultSeparator);
+            FlattenResult destStructure = ObjectFlattener.Flatten(typeof(TDestination), separator: GlobalConstants.DefaultDotSeparator);
             // 3. Update destStructure with existing non-null values from the actual destination instance.
-            FlattenResult destActual = ObjectFlattener.Flatten(destination, separator: DefaultSeparator);
+            FlattenResult destActual = ObjectFlattener.Flatten(destination, separator: GlobalConstants.DefaultDotSeparator);
             foreach (var key in destActual.Properties.Keys)
             {
                 if (destActual.Properties[key].Value != null)
@@ -46,7 +46,7 @@ namespace DMapper.Helpers
             // 5. Process [BindTo] attributes on inner properties.
             foreach (var key in destStructure.Properties.Keys.ToList())
             {
-                PropertyInfo leafProp = GetLeafPropertyInfo(typeof(TDestination), key, DefaultSeparator);
+                PropertyInfo leafProp = GetLeafPropertyInfo(typeof(TDestination), key, GlobalConstants.DefaultDotSeparator);
                 if (leafProp == null)
                     continue;
                 var bindAttr = leafProp.GetCustomAttribute<BindToAttribute>();
@@ -54,7 +54,7 @@ namespace DMapper.Helpers
                 {
                     // Determine parent prefix (if any) from the flattened key.
                     string parentPrefix = "";
-                    int lastSep = key.LastIndexOf(DefaultSeparator);
+                    int lastSep = key.LastIndexOf(GlobalConstants.DefaultDotSeparator);
                     if (lastSep > 0)
                         parentPrefix = key.Substring(0, lastSep);
                     
@@ -63,7 +63,7 @@ namespace DMapper.Helpers
                         // If candidate does not contain the separator and this is an inner property, prepend parent's prefix.
                         string fullCandidate = string.IsNullOrEmpty(parentPrefix)
                             ? candidate
-                            : (!candidate.Contains(DefaultSeparator) ? parentPrefix + DefaultSeparator + candidate : candidate);
+                            : (!candidate.Contains(GlobalConstants.DefaultDotSeparator) ? parentPrefix + GlobalConstants.DefaultDotSeparator + candidate : candidate);
                         if (srcFlatten.Properties.TryGetValue(fullCandidate, out FlattenedProperty srcProp) && srcProp.Value != null)
                         {
                             destStructure.Properties[key].Value = srcProp.Value;
@@ -96,7 +96,7 @@ namespace DMapper.Helpers
             }
 
             // 7. Rehydrate the destination from the merged flatten result.
-            object rehydrated = destStructure.Rehydrate(separator: DefaultSeparator);
+            object rehydrated = destStructure.Rehydrate(separator: GlobalConstants.DefaultDotSeparator);
             return (TDestination)rehydrated;
         }
 

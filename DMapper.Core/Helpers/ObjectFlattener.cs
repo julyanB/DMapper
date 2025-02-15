@@ -1,29 +1,28 @@
 using System.Collections;
 using System.Reflection;
+using DMapper.Constants;
 using DMapper.Helpers.Models;
 
 namespace DMapper.Helpers;
 
 public static class ObjectFlattener
 {
-    private const string DefaultSeparator = ".";
-
     #region Public Flatten Overloads
 
-    public static FlattenResult Flatten(object obj, string prefix = "", string separator = DefaultSeparator)
+    public static FlattenResult Flatten(object obj, string prefix = "", string separator = GlobalConstants.DefaultDotSeparator)
     {
         var dict = FlattenObject(obj, prefix, separator);
         Type flattenedType = obj?.GetType();
         return new FlattenResult(flattenedType, dict);
     }
 
-    public static FlattenResult Flatten(Type type, string prefix = "", string separator = DefaultSeparator)
+    public static FlattenResult Flatten(Type type, string prefix = "", string separator = GlobalConstants.DefaultDotSeparator)
     {
         var dict = FlattenStructure(type, prefix, separator);
         return new FlattenResult(type, dict);
     }
 
-    public static FlattenResult Flatten<T>(string prefix = "", string separator = DefaultSeparator)
+    public static FlattenResult Flatten<T>(string prefix = "", string separator = GlobalConstants.DefaultDotSeparator)
     {
         return Flatten(typeof(T), prefix, separator);
     }

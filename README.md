@@ -357,6 +357,303 @@ public class Dest2_14
 }
 ```
 
+# Object Flattening with DMapper
+
+## Overview
+
+The `ObjectFlattener` utility in DMapper provides a way to flatten complex objects into key-value pairs, making it easier to work with deeply nested structures. This is especially useful for serialization, mapping, and transformation scenarios.
+
+The utility supports flattening:
+- **Object Instances**: Converts an object into a dictionary with key paths.
+- **Type Structures**: Analyzes a type and produces a structure representation.
+- **Collections & Arrays**: Handles lists, dictionaries, and arrays gracefully.
+
+---
+
+## Installation
+
+Ensure that your project references the `DMapper.Helpers` namespace:
+
+```csharp
+using DMapper.Helpers;
+using DMapper.Helpers.Models;
+```
+
+If you are using the extension methods:
+
+```csharp
+using DMapper.Extensions;
+```
+
+---
+
+## Basic Usage
+
+### 1. Flattening an Object Instance
+
+To flatten an instance of an object:
+
+```csharp
+var myObject = new
+{
+    Name = "John Doe",
+    Address = new { City = "New York", Zip = "10001" },
+    Tags = new[] { "Developer", "Blogger" }
+};
+
+FlattenResult result = myObject.Flatten();
+```
+
+This will produce key-value pairs like:
+
+```
+Name -> "John Doe"
+Address.City -> "New York"
+Address.Zip -> "10001"
+Tags[0] -> "Developer"
+Tags[1] -> "Blogger"
+```
+
+### 2. Flattening a Type Structure
+
+To get the structure of a type without an instance:
+
+```csharp
+FlattenResult result = typeof(MyClass).Flatten();
+```
+
+This generates a similar dictionary but with `null` values, representing the type structure.
+
+### 3. Flattening a Generic Type
+
+```csharp
+FlattenResult result = Flatten<MyClass>();
+```
+
+This is equivalent to calling `Flatten(typeof(MyClass))`.
+
+---
+
+## Understanding `FlattenResult`
+
+A `FlattenResult` contains:
+- **`FlattenedType`**: The type of the object that was flattened.
+- **`Properties`**: A dictionary mapping flattened property paths to `FlattenedProperty` objects.
+
+Each `FlattenedProperty` consists of:
+- **`Value`**: The actual value of the property.
+- **`PropertyType`**: The type of the property.
+- **`Next` and `Previous`**: Pointers to adjacent properties in sorted order, allowing for sequential access.
+
+Example:
+
+```csharp
+foreach (var entry in result.Properties)
+{
+    Console.WriteLine($"{entry.Key} -> {entry.Value.Value} (Type: {entry.Value.PropertyType.Name})");
+}
+```
+
+---
+
+## Handling Collections
+
+The `ObjectFlattener` handles lists and arrays using indexed paths:
+
+```csharp
+var obj = new { Numbers = new[] { 1, 2, 3 } };
+FlattenResult result = obj.Flatten();
+```
+
+Output:
+```
+Numbers[0] -> 1
+Numbers[1] -> 2
+Numbers[2] -> 3
+```
+
+---
+
+## Custom Separator
+
+By default, the separator is `.` but you can customize it:
+
+```csharp
+FlattenResult result = myObject.Flatten(separator: "/");
+```
+
+Produces:
+```
+Address/City -> "New York"
+```
+
+---
+
+## Advanced Flattening Capabilities
+
+### Flattening with `GlobalConstants.DefaultDotSeparator`
+
+If your application uses `GlobalConstants.DefaultDotSeparator` as the standard separator, you can leverage it:
+
+```csharp
+FlattenResult result = myObject.Flatten(separator: GlobalConstants.DefaultDotSeparator);
+```
+
+### Flattening Nested Collections
+
+```csharp
+var obj = new { 
+    Categories = new[] {
+        new { Name = "Tech", Items = new[] { "Laptop", "Phone" } },
+        new { Name = "Books", Items = new[] { "Fiction", "Non-Fiction" } }
+    }
+};
+
+FlattenResult result = obj.Flatten();
+```
+
+Output:
+```
+Categories[0].Name -> "Tech"
+Categories[0].Items[0] -> "Laptop"
+Categories[0].Items[1] -> "Phone"
+Categories[1].Name -> "Books"
+Categories[1].Items[0] -> "Fiction"
+Categories[1].Items[1] -> "Non-Fiction"
+```
+
+### Flattening Dictionaries
+
+Dictionaries are also supported and use key-based paths:
+
+```csharp
+var obj = new Dictionary<string, object>
+{
+    ["User"] = new { Name = "John", Age = 30 },
+    ["Settings"] = new { Theme = "Dark" }
+};
+
+FlattenResult result = obj.Flatten();
+```
+
+Output:
+```
+User.Name -> "John"
+User.Age -> 30
+Settings.Theme -> "Dark"
+```
+
+---
+
+## Rehydrating Objects
+
+The `FlattenResult` allows rehydration into a strongly-typed object:
+
+```csharp
+var rehydrated = (MyClass)result.Rehydrate();
+```
+
+This reconstructs the object with properties populated from the flattened values.
+
+### Handling Nested Properties
+
+When rehydrating, intermediate objects and collections are instantiated automatically:
+
+```csharp
+FlattenResult result = Flatten<MyClass>();
+MyClass myObject = (MyClass)result.Rehydrate();
+```
+
+# FlattenResult and PropertyMapping Documentation
+
+## Overview
+
+This document provides an in-depth explanation of the `FlattenResult` and `PropertyMapping` classes in DMapper. These classes play a key role in object flattening and property mapping during transformation and serialization processes.
+
+---
+
+## `FlattenResult`
+
+### Purpose
+
+The `FlattenResult` class represents the output of an object flattening operation. It provides access to a structured key-value representation of an object and includes functionality to restore the original object structure.
+
+### Public Members
+
+#### Properties
+
+- **`FlattenedType`**: The type of the object that was flattened.
+- **`Properties`**: A dictionary mapping property paths to `FlattenedProperty` objects.
+
+#### Constructor
+
+```csharp
+public FlattenResult(Type flattenedType, Dictionary<string, FlattenedProperty> properties)
+```
+- **`flattenedType`**: Specifies the type of the original object.
+- **`properties`**: Stores the flattened representation as key-value pairs.
+
+#### Rehydration
+
+The `Rehydrate` method reconstructs an object from its flattened representation.
+
+```csharp
+public object Rehydrate(string separator = ".")
+```
+- **Returns**: A new instance of the original type with properties and collections properly instantiated.
+- **Usage**:
+
+```csharp
+FlattenResult result = Flatten<MyClass>();
+MyClass rehydratedObject = (MyClass)result.Rehydrate();
+```
+
+---
+
+## `PropertyMapping`
+
+### Purpose
+
+The `PropertyMapping` class defines a mapping between a destination property and a chain of source properties, enabling structured object transformation.
+
+### Public Members
+
+#### Properties
+
+- **`DestinationProperty`**: The `PropertyInfo` representing the destination property.
+- **`SourcePropertyChain`**: An array of `PropertyInfo` objects representing the property path from the source object.
+
+#### Example Usage
+
+```csharp
+var mapping = new PropertyMapping
+{
+    DestinationProperty = typeof(DestinationClass).GetProperty("NestedProperty"),
+    SourcePropertyChain = new[]
+    {
+        typeof(SourceClass).GetProperty("SubObject"),
+        typeof(SubObjectClass).GetProperty("Value")
+    }
+};
+```
+
+This example maps `NestedProperty` in `DestinationClass` from `SourceClass.SubObject.Value`.
+
+---
+
+## Conclusion
+
+The `FlattenResult` and `PropertyMapping` classes are essential for managing object transformation, ensuring that flattened representations maintain structure and allowing for seamless rehydration into objects.
+
+
+---
+
+## Conclusion
+
+Flattening is useful for mapping, serialization, and data transformation. Using `ObjectFlattener`, you can easily convert objects into structured key-value pairs and rehydrate them back into objects when needed. The framework handles collections, nested properties, and dictionaries, making it a powerful tool for handling structured data.
+
+
+
 
 ---
 
