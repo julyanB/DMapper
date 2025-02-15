@@ -1,6 +1,4 @@
 ﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DMapper.Helpers;
 
@@ -43,27 +41,6 @@ public static partial class ReflectionHelper
         }
 
         return copy;
-    }
-
-    public static TDest DeepCopy<TSrc, TDest>(TSrc src)
-    {
-        if (src is null)
-        {
-            return default!;
-        }
-
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
-        var srcJson = System.Text.Json.JsonSerializer.Serialize(src);
-        var dest = System.Text.Json.JsonSerializer.Deserialize<TDest>(srcJson, options);
-
-        return dest;
     }
     
     public static bool IsSimpleType(Type type)
