@@ -5,7 +5,7 @@
         <RootNamespace>DMapper</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>DMapper</Title>
-        <Authors>DMapper Team</Authors>
+        <Authors>Julian B.</Authors>
         <Description>A lightweight .NET object mapping library for deep copying and attribute-based property mapping.</Description>
         <Copyright>Copyright © 2025 DMapper</Copyright>
         <PackageProjectUrl>https://github.com/julyan97/DMapper</PackageProjectUrl>
