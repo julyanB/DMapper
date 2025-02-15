@@ -11,14 +11,17 @@ public static class ObjectFlattener
 
     public static FlattenResult Flatten(object obj, string prefix = "", string separator = GlobalConstants.DefaultDotSeparator)
     {
-        var dict = FlattenObject(obj, prefix, separator);
+        var visited = new HashSet<object>(new Comparers.ReferenceComparer());
+        var dict = FlattenObject(obj, prefix, separator, visited);
         Type flattenedType = obj?.GetType();
         return new FlattenResult(flattenedType, dict);
     }
 
     public static FlattenResult Flatten(Type type, string prefix = "", string separator = GlobalConstants.DefaultDotSeparator)
     {
-        var dict = FlattenStructure(type, prefix, separator);
+        // Start with a new visited set for type flattening.
+        var visited = new HashSet<Type>(new Comparers.ReferenceComparer());
+        var dict = FlattenStructure(type, prefix, separator, visited);
         return new FlattenResult(type, dict);
     }
 
@@ -31,11 +34,23 @@ public static class ObjectFlattener
 
     #region Internal Flattening Methods
 
-    private static Dictionary<string, FlattenedProperty> FlattenObject(object obj, string prefix, string separator)
+    private static Dictionary<string, FlattenedProperty> FlattenObject(object obj, string prefix, string separator, HashSet<object> visited)
     {
         var dict = new Dictionary<string, FlattenedProperty>(StringComparer.OrdinalIgnoreCase);
-        if (obj == null) return dict;
+        if (obj == null)
+            return dict;
+
         Type type = obj.GetType();
+        // For non-simple types, check for cycles.
+        if (!ReflectionHelper.IsSimpleType(type))
+        {
+            if (!visited.Add(obj))
+            {
+                // Cycle detected; return empty dictionary to break recursion.
+                return dict;
+            }
+        }
+
         if (ReflectionHelper.IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix.Trim(separator.ToCharArray());
@@ -51,7 +66,7 @@ public static class ObjectFlattener
             foreach (var item in enumerable)
             {
                 string key = string.IsNullOrEmpty(prefix) ? $"[{index}]" : $"{prefix}[{index}]";
-                var subDict = FlattenObject(item, key, separator);
+                var subDict = FlattenObject(item, key, separator, visited);
                 foreach (var kvp in subDict)
                     dict[kvp.Key] = kvp.Value;
                 index++;
@@ -62,7 +77,8 @@ public static class ObjectFlattener
 
         foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            if (!prop.CanRead) continue;
+            if (!prop.CanRead)
+                continue;
             object value;
             try
             {
@@ -80,7 +96,7 @@ public static class ObjectFlattener
             }
             else
             {
-                var subDict = FlattenObject(value, key, separator);
+                var subDict = FlattenObject(value, key, separator, visited);
                 foreach (var kvp in subDict)
                     dict[kvp.Key] = kvp.Value;
             }
@@ -89,10 +105,17 @@ public static class ObjectFlattener
         return dict;
     }
 
-    private static Dictionary<string, FlattenedProperty> FlattenStructure(Type type, string prefix, string separator)
+    private static Dictionary<string, FlattenedProperty> FlattenStructure(Type type, string prefix, string separator, HashSet<Type> visited)
     {
         var dict = new Dictionary<string, FlattenedProperty>(StringComparer.OrdinalIgnoreCase);
-        if (type == null) return dict;
+        if (type == null)
+            return dict;
+
+        // If this type was already processed, break the recursion.
+        if (visited.Contains(type))
+            return dict;
+        visited.Add(type);
+
         if (ReflectionHelper.IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix;
@@ -112,7 +135,7 @@ public static class ObjectFlattener
             if (elementType != null)
             {
                 string key = string.IsNullOrEmpty(prefix) ? "[*]" : $"{prefix}[*]";
-                var subDict = FlattenStructure(elementType, key, separator);
+                var subDict = FlattenStructure(elementType, key, separator, visited);
                 foreach (var kvp in subDict)
                     dict[kvp.Key] = kvp.Value;
             }
@@ -129,7 +152,7 @@ public static class ObjectFlattener
             }
             else
             {
-                var subDict = FlattenStructure(prop.PropertyType, key, separator);
+                var subDict = FlattenStructure(prop.PropertyType, key, separator, visited);
                 foreach (var kvp in subDict)
                     dict[kvp.Key] = kvp.Value;
             }

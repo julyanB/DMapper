@@ -16,24 +16,25 @@ public class Source1
     public string Source { get; set; }
     public Source2 Source2 { get; set; } = new Source2();
 }
+
 public class Source2
 {
     public string SourceName2 { get; set; } = "SourceName2";
 }
+
 public class Destination1
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    [BindTo("Source")]
-    public string Destination { get; set; }
+    [BindTo("Source")] public string Destination { get; set; }
     public Destination2 Source2 { get; set; }
-    
+
     public string DontChange { get; set; } = "DontChange";
 }
+
 public class Destination2
 {
-    [BindTo("SourceName2")]
-    public string DestinationName3 { get; set; }
+    [BindTo("SourceName2")] public string DestinationName3 { get; set; }
 }
 
 /////////////////////////
@@ -43,19 +44,21 @@ public class SourceTest2
     public string Outer { get; set; } = "OuterValue";
     public InnerSource Inner { get; set; } = new InnerSource();
 }
+
 public class InnerSource
 {
     public string InnerProp { get; set; } = "InnerValue";
 }
+
 public class DestinationTest2
 {
     public string Outer { get; set; }
     public InnerDest Inner { get; set; }
 }
+
 public class InnerDest
 {
-    [BindTo("InnerProp")]
-    public string MyInner { get; set; }
+    [BindTo("InnerProp")] public string MyInner { get; set; }
 }
 
 /////////////////////////
@@ -65,16 +68,20 @@ public class SourceTest3
     public string Data { get; set; } = "DataFromSource";
     public NestedSource Nested { get; set; } = new NestedSource();
 }
+
 public class NestedSource
 {
     public string Info { get; set; } = "NestedInfo";
 }
+
 public class DestinationTest3
 {
     public string Data { get; set; }
+
     [ComplexBind("NestedDestination.Info", "Nested.Info")]
     public NestedDest NestedDestination { get; set; }
 }
+
 public class NestedDest
 {
     public string Info { get; set; }
@@ -86,11 +93,12 @@ public class SourceTest4
 {
     public string Extra { get; set; } = "ExtraValue";
 }
+
 public class DestinationTest4
 {
-    [ComplexBind("Sub.Info", "Extra")]
-    public SubDest Sub { get; set; }
+    [ComplexBind("Sub.Info", "Extra")] public SubDest Sub { get; set; }
 }
+
 public class SubDest
 {
     public string Info { get; set; }
@@ -102,10 +110,10 @@ public class SourceTest5
 {
     public string[] Items { get; set; } = new string[] { "Item1", "Item2", "Item3" };
 }
+
 public class DestinationTest5
 {
-    [BindTo("Items")]
-    public string[] Items { get; set; }
+    [BindTo("Items")] public string[] Items { get; set; }
 }
 
 /////////////////////////
@@ -115,10 +123,10 @@ public class SourceTest6
     public string X { get; set; } = "FallbackValue";
     public string B { get; set; } = "Beta";
 }
+
 public class DestinationTest6
 {
-    [BindTo("X")]
-    public string B { get; set; }
+    [BindTo("X")] public string B { get; set; }
 }
 
 /////////////////////////
@@ -127,23 +135,26 @@ public class SourceTest7
 {
     public NestedSource7 A { get; set; } = new NestedSource7();
 }
+
 public class NestedSource7
 {
     public NestedSource7Inner B { get; set; } = new NestedSource7Inner();
 }
+
 public class NestedSource7Inner
 {
     public string C { get; set; } = "Value7";
 }
+
 public class DestinationTest7
 {
     public DestinationTest7A A { get; set; } = new DestinationTest7A();
 }
+
 public class DestinationTest7A
 {
     // Using a relative BindTo attribute. The candidate "B.C" will be merged into the key "A.B.C".
-    [BindTo("A.B.C")]
-    public string X { get; set; }
+    [BindTo("A.B.C")] public string X { get; set; }
 }
 
 /////////////////////////
@@ -153,15 +164,16 @@ public class SourceTest8
     public string M { get; set; } = "MValue";
     public NestedSource8 N { get; set; } = new NestedSource8();
 }
+
 public class NestedSource8
 {
     public string O { get; set; } = "OValue";
 }
+
 public class DestinationTest8
 {
     // Using an absolute BindTo key "N.O"
-    [BindTo("N.O")]
-    public string X { get; set; }
+    [BindTo("N.O")] public string X { get; set; }
 }
 
 /////////////////////////
@@ -170,19 +182,21 @@ public class SourceTest9
 {
     public NestedSource9 A { get; set; } = new NestedSource9();
 }
+
 public class NestedSource9
 {
     public string Y { get; set; } = "Value9";
 }
+
 public class DestinationTest9
 {
     public DestinationTest9A A { get; set; } = new DestinationTest9A();
 }
+
 public class DestinationTest9A
 {
     // Using a relative BindTo candidate "Y" to be applied to flattened key "A.Y"
-    [BindTo("Y")]
-    public string Z { get; set; }
+    [BindTo("Y")] public string Z { get; set; }
 }
 
 /////////////////////////
@@ -192,16 +206,19 @@ public class Src1
     public string Name { get; set; } = "Pesho";
     public List<Src2> Src2List { get; set; } = new List<Src2> { new Src2(), new Src2() };
 }
+
 public class Src2
 {
     public int Age { get; set; } = 10;
     public string Name { get; set; } = "John";
 }
+
 public class Dest1
 {
     public string? Name { get; set; }
     public List<Dest2> Src2List { get; set; }
 }
+
 public class Dest2
 {
     public int? Age { get; set; }
@@ -224,19 +241,20 @@ public class CollectionSource1
         new CollectionItemSource { Value = "D", Number = 4 }
     };
 }
+
 public class CollectionItemSource
 {
     public string Value { get; set; }
     public int Number { get; set; }
 }
+
 public class CollectionDestination1
 {
-    [BindTo("Items")]
-    public List<CollectionItemDest> Items { get; set; }
-    
-    [BindTo("ArrayItems")]
-    public CollectionItemDest[] ArrayItems { get; set; }
+    [BindTo("Items")] public List<CollectionItemDest> Items { get; set; }
+
+    [BindTo("ArrayItems")] public CollectionItemDest[] ArrayItems { get; set; }
 }
+
 public class CollectionItemDest
 {
     public string Value { get; set; }
@@ -262,6 +280,7 @@ public class NestedCollectionSource
         }
     };
 }
+
 public class NestedCollectionDestination
 {
     public List<List<CollectionItemDest>> NestedItems { get; set; }
@@ -274,18 +293,20 @@ public class Src1_13
     public string Name { get; set; } = "Pesho";
     public List<Src2_13> Src2List { get; set; } = new List<Src2_13> { new Src2_13(), new Src2_13() };
 }
+
 public class Src2_13
 {
     public int Age { get; set; } = 10;
     public string Name { get; set; } = "John";
 }
+
 public class Dest1_13
 {
     public string? Name { get; set; }
-    
-    [BindTo("Src2List")]
-    public List<Dest2_13> Src2List_13 { get; set; }
+
+    [BindTo("Src2List")] public List<Dest2_13> Src2List_13 { get; set; }
 }
+
 public class Dest2_13
 {
     public int? Age { get; set; }
@@ -299,26 +320,42 @@ public class Src1_14
     public string Name { get; set; } = "Pesho";
     public List<Src2_14> Src2List { get; set; } = new List<Src2_14> { new Src2_14(), new Src2_14() };
 }
+
 public class Src2_14
 {
     public int Age { get; set; } = 10;
     public string Name { get; set; } = "John";
 }
+
 public class Dest1_14
 {
     public string? Name { get; set; }
-    
-    [BindTo("Src2List")]
-    public List<Dest2_14> Src2List_13 { get; set; }
+
+    [BindTo("Src2List")] public List<Dest2_14> Src2List_13 { get; set; }
 }
+
 public class Dest2_14
 {
-    [BindTo("Age")]
-    public int? Age2 { get; set; }
+    [BindTo("Age")] public int? Age2 { get; set; }
     public string? Name { get; set; }
 }
 
+/////////////////////////
 
+// Test 15: Cycle Dependency Mapping (Stack Overflow Test)
+// This test creates a circular reference. If cycles aren't handled properly,
+// the mapping will never complete (or cause a stack overflow) and the thread won't finish.
+public class SourceTest15
+{
+    public string Name { get; set; } = "Parent";
+    public SourceTest15 Child { get; set; }
+}
+
+public class DestinationTest15
+{
+    public string Name { get; set; }
+    public DestinationTest15 Child { get; set; }
+}
 
 #endregion
 
@@ -411,6 +448,7 @@ class Program
         {
             Console.WriteLine($"  Value: {item.Value}, Number: {item.Number}");
         }
+
         Console.WriteLine("Array Items:");
         if (dest11.ArrayItems != null)
         {
@@ -419,6 +457,7 @@ class Program
                 Console.WriteLine($"  Value: {item.Value}, Number: {item.Number}");
             }
         }
+
         Console.WriteLine(new string('-', 40));
 
         Console.WriteLine("Test 12: Nested Collection Mapping (List of Lists)");
@@ -432,10 +471,12 @@ class Program
             {
                 Console.WriteLine($"    Value: {item.Value}, Number: {item.Number}");
             }
+
             outerIndex++;
         }
+
         Console.WriteLine(new string('-', 40));
-        
+
         Console.WriteLine("Test 13: Mapping a List with [BindTo]");
         var src13 = new Src1_13();
         var dest13 = src13.MapTo<Dest1_13>();
@@ -444,7 +485,7 @@ class Program
         Console.WriteLine($"Src2List_13[0].Age: {dest13.Src2List_13[0].Age}");
         Console.WriteLine($"Src2List_13[0].Name: {dest13.Src2List_13[0].Name}");
         Console.WriteLine(new string('-', 40));
-        
+
         Console.WriteLine("Test 14: Mapping a List with [BindTo] on their props as well");
         var src14 = new Src1_14();
         var dest14 = src14.MapTo<Dest1_14>();
@@ -453,7 +494,22 @@ class Program
         Console.WriteLine($"Src2List_13[0].Age2: {dest14.Src2List_13[0].Age2}");
         Console.WriteLine($"Src2List_13[0].Name: {dest14.Src2List_13[0].Name}");
         Console.WriteLine(new string('-', 40));
-        
+
+        Console.WriteLine("Test 15: Cycle Dependency Mapping (Stack Overflow Detection)");
+        // Create source objects with a circular reference.
+        var source15 = new SourceTest15 { Name = "Parent" };
+        var child15 = new SourceTest15 { Name = "Child" };
+        source15.Child = child15;
+        child15.Child = source15; // Circular reference: Child -> Parent
+
+
+        DestinationTest15 dest15 = new DestinationTest15();
+        // This mapping call will recurse infinitely if cycle detection is not implemented.
+        dest15 = ReflectionHelper.ReplacePropertiesRecursive_V5<DestinationTest15, SourceTest15>(dest15, source15);
+        Console.WriteLine("Mapping completed successfully:");
+        Console.WriteLine($"  Parent Name: {dest15.Name}");
+        Console.WriteLine($"  Child Name: {dest15.Child?.Name}");
+        Console.WriteLine(new string('-', 40));
 
         Console.WriteLine("Press any key to exit...");
         Console.ReadKey();
