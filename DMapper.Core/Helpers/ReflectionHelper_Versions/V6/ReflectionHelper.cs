@@ -32,7 +32,7 @@ namespace DMapper.Helpers
             }
 
             // 2. Build the mapping dictionary from the destination type.
-            Dictionary<string, List<string>> mappingDict = BuildMappingDictionary(typeof(TDestination));
+            Dictionary<string, List<string>> mappingDict = BuildMappingDictionary_V6(typeof(TDestination));
 
             // 3. For each mapping entry, try each candidate source key.
             foreach (var mapping in mappingDict)
@@ -43,7 +43,7 @@ namespace DMapper.Helpers
                     if (fixedSrc.TryGetValue(candidate, out FlattenedProperty srcProp) &&
                         srcProp.Value != null)
                     {
-                        SetNestedValueDirect(destination, destKey, srcProp.Value, GlobalConstants.DefaultDotSeparator);
+                        SetNestedValueDirect_V6(destination, destKey, srcProp.Value, GlobalConstants.DefaultDotSeparator);
                         break; // Use the first candidate that yields a value.
                     }
                 }
@@ -62,7 +62,7 @@ namespace DMapper.Helpers
         /// to set the final property on the destination instance.
         /// If the destination property is a collection and the source value is enumerable, maps each element.
         /// </summary>
-        private static void SetNestedValueDirect(object destination, string flattenedKey, object value, string separator)
+        private static void SetNestedValueDirect_V6(object destination, string flattenedKey, object value, string separator)
         {
             string[] parts = flattenedKey.Split(new string[] { separator }, StringSplitOptions.None);
             object current = destination;
@@ -89,7 +89,7 @@ namespace DMapper.Helpers
                                 : typeof(object));
 
                         // Create and map the collection elements.
-                        IList destList = CreateAndMapCollection(srcEnumerable, destElementType);
+                        IList destList = CreateAndMapCollection_V6(srcEnumerable, destElementType);
 
                         // If the destination property is an array, convert the list to an array.
                         if (prop.PropertyType.IsArray)
@@ -166,14 +166,14 @@ namespace DMapper.Helpers
         /// This method iterates over public properties if the type is a class (except for string)
         /// and uses a per-branch visited set to break cycles.
         /// </summary>
-        private static Dictionary<string, List<string>> BuildMappingDictionary(Type destinationType)
+        private static Dictionary<string, List<string>> BuildMappingDictionary_V6(Type destinationType)
         {
             var mapping = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-            BuildMappingDictionaryRecursive(destinationType, "", mapping, null, new HashSet<Type>());
+            BuildMappingDictionaryRecursive_V6(destinationType, "", mapping, null, new HashSet<Type>());
             return mapping;
         }
 
-        private static void BuildMappingDictionaryRecursive(
+        private static void BuildMappingDictionaryRecursive_V6(
             Type type,
             string destPrefix,
             Dictionary<string, List<string>> mapping,
@@ -227,7 +227,7 @@ namespace DMapper.Helpers
 
                 if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                 {
-                    BuildMappingDictionaryRecursive(prop.PropertyType, currentDestKey, mapping, newEffectiveSourcePrefix, new HashSet<Type>(visited));
+                    BuildMappingDictionaryRecursive_V6(prop.PropertyType, currentDestKey, mapping, newEffectiveSourcePrefix, new HashSet<Type>(visited));
                 }
             }
         }
@@ -240,7 +240,7 @@ namespace DMapper.Helpers
         /// Creates a new IList of the appropriate type and iterates through the source enumerable,
         /// mapping each element using a helper that maps the source element to the destination type.
         /// </summary>
-        private static IList CreateAndMapCollection(IEnumerable srcEnumerable, Type destElementType)
+        private static IList CreateAndMapCollection_V6(IEnumerable srcEnumerable, Type destElementType)
         {
             var listType = typeof(List<>).MakeGenericType(destElementType);
             var destList = (IList)Activator.CreateInstance(listType);
@@ -249,7 +249,7 @@ namespace DMapper.Helpers
                 object destElem;
                 if (srcElem != null && destElementType.IsClass && destElementType != typeof(string))
                 {
-                    destElem = MapToObject(srcElem, destElementType);
+                    destElem = MapToObject_V6(srcElem, destElementType);
                 }
                 else
                 {
@@ -266,7 +266,7 @@ namespace DMapper.Helpers
         /// Maps the given source object to a new instance of the destination type using V6 mapping.
         /// This helper uses reflection to invoke ReplacePropertiesRecursive_V6.
         /// </summary>
-        private static object MapToObject(object source, Type destinationType)
+        private static object MapToObject_V6(object source, Type destinationType)
         {
             object dest = Activator.CreateInstance(destinationType);
             MethodInfo method = typeof(ReflectionHelper)
@@ -314,7 +314,7 @@ namespace DMapper.Helpers
                             }
                             else
                             {
-                                SetNestedValueDirect(destination, destPath, srcProp.Value, GlobalConstants.DefaultDotSeparator);
+                                SetNestedValueDirect_V6(destination, destPath, srcProp.Value, GlobalConstants.DefaultDotSeparator);
                             }
 
                             break;
