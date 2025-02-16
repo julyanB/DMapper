@@ -161,5 +161,9 @@ public static class ObjectFlattener
         return dict;
     }
 
+    private static string CleanKey(string key, string separator)
+    {
+        return key.Trim(separator.ToCharArray());
+    }
     #endregion
 }

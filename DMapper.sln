@@ -2,7 +2,13 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMapper.Core", "DMapper.Core\DMapper.Core.csproj", "{6BAD2C41-D0BF-43B9-9278-5371479CDB2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCases", "TestCases\TestCases.csproj", "{162AD0CB-D963-44BA-8816-0092FD0B5568}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMapper.ConsoleTests", "DMapper.ConsoleTests\DMapper.ConsoleTests.csproj", "{162AD0CB-D963-44BA-8816-0092FD0B5568}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{C9D60917-6A1C-4B05-998D-EEAD43AA8868}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{AA45E143-472D-40E9-B081-A06921C843F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMapper.Tests", "DMapper.Tests\DMapper.Tests.csproj", "{B159E33B-FCE0-4722-B6EC-5DAB44D889ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +24,14 @@ Global
 		{162AD0CB-D963-44BA-8816-0092FD0B5568}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{162AD0CB-D963-44BA-8816-0092FD0B5568}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{162AD0CB-D963-44BA-8816-0092FD0B5568}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B159E33B-FCE0-4722-B6EC-5DAB44D889ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B159E33B-FCE0-4722-B6EC-5DAB44D889ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B159E33B-FCE0-4722-B6EC-5DAB44D889ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B159E33B-FCE0-4722-B6EC-5DAB44D889ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6BAD2C41-D0BF-43B9-9278-5371479CDB2F} = {C9D60917-6A1C-4B05-998D-EEAD43AA8868}
+		{B159E33B-FCE0-4722-B6EC-5DAB44D889ED} = {AA45E143-472D-40E9-B081-A06921C843F2}
+		{162AD0CB-D963-44BA-8816-0092FD0B5568} = {AA45E143-472D-40E9-B081-A06921C843F2}
 	EndGlobalSection
 EndGlobal
