@@ -22,7 +22,8 @@ public static class MappingExtensions
             DMapperVersion.V3 => ReflectionHelper.ReplacePropertiesRecursive_V3(destination, source),
             DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
             DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
-            _ or DMapperVersion.Latest => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source)
+            DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
+            _ or DMapperVersion.Latest => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source)
         };
         
         // Call your advanced mapping method.
@@ -43,7 +44,8 @@ public static class MappingExtensions
             DMapperVersion.V3 => ReflectionHelper.ReplacePropertiesRecursive_V3(destination, source),
             DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
             DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
-            _ or DMapperVersion.Latest => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source)
+            DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
+            _ or DMapperVersion.Latest => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source)
         };
         
         // Call your advanced mapping method.
