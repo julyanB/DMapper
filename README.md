@@ -1,13 +1,13 @@
 # DMapper
 
-DMapper is a lightweight and efficient .NET object mapping library designed to simplify object transformation, deep copying, and recursive property binding using advanced reflection techniques. The latest version (v5) uses a flattened-object approach that leverages a flattening engine with Next/Previous pointers for each flattened property. This enables precise control over both relative and absolute property mappings via custom attributes.
+DMapper is a lightweight and efficient .NET object mapping library designed to simplify object transformation, deep copying, and recursive property binding using advanced reflection techniques. The latest version (DMapper (latest version)) uses a flattened-object approach that leverages a flattening engine with Next/Previous pointers for each flattened property. This enables precise control over both relative and absolute property mappings via custom attributes.
 
 ## Features
 
 - **Flattening Engine with Next/Previous Pointers:**
   Objects are flattened into a dictionary of properties, where each flattened property includes Next and Previous pointers. These pointers can be used as a fallback when an exact key isn’t found during mapping.
-- **Advanced Recursive Mapping (v5):**
-  The v5 engine maps source objects to destination objects solely by merging their flattened representations. It supports both [BindTo] and [ComplexBind] attributes, enabling you to specify relative or absolute property paths (e.g. 'x.y.u').
+- **Advanced Recursive Mapping (DMapper (latest version)):**
+  The DMapper (latest version) engine maps source objects to destination objects solely by merging their flattened representations. It supports both [BindTo] and [ComplexBind] attributes, enabling you to specify relative or absolute property paths (e.g. 'x.y.u').
 - **Attribute-Based Mapping:**
   - **[BindTo]:** Use this attribute to map a property from a source key. If the candidate key is relative (i.e. does not contain the separator), the engine prepends the parent path to form a fully qualified key.
   - **[ComplexBind]:** Use this attribute for mapping complex or nested properties by specifying an exact (absolute) flattened key.
@@ -24,9 +24,9 @@ Simply add the DMapper source files to your .NET project. No external dependenci
 
 ## Usage
 
-### 1. Mapping with v5
+### 1. Mapping with DMapper (latest version)
 
-The v5 mapping engine relies solely on the flattened representation of source and destination objects. It performs the following steps:
+The DMapper (latest version) mapping engine relies solely on the flattened representation of source and destination objects. It performs the following steps:
 1. **Flatten the Source:**
    The source object is converted into a dictionary of flattened properties with actual values.
 2. **Flatten the Destination Structure:**
@@ -356,6 +356,148 @@ public class Dest2_14
     public string? Name { get; set; }
 }
 ```
+
+### Test 15: Cycle Dependency Mapping (Stack Overflow Test)
+#### Description
+Tests the handling of cyclic dependencies in object mapping to prevent infinite recursion.
+
+#### Source Code
+```csharp
+public class SourceTest15
+{
+    public string Name { get; set; } = "Parent";
+    public SourceTest15 Child { get; set; }
+}
+
+public class DestinationTest15
+{
+    public string Name { get; set; }
+    public DestinationTest15 Child { get; set; }
+}
+```
+#### Expected Behavior
+- The mapping should detect circular references and prevent infinite recursion.
+- The parent-child structure should be mapped correctly without causing a stack overflow.
+
+### Test 16: Multi-Source with Same Destination
+#### Description
+Maps multiple source properties to a single destination property.
+
+#### Source Code
+```csharp
+public class SourceTest1_16
+{
+    public string Name1 { get; set; } = "Source1";
+}
+
+public class SourceTest2_16
+{
+    public string Name2 { get; set; } = "Source2";
+}
+
+public class DestinationTest16
+{
+    [BindTo("Name1, Name2")]
+    public string Name { get; set; }
+}
+```
+#### Expected Behavior
+- The destination `Name` should be assigned the value of `Name1` or `Name2` based on availability.
+
+### Test 17: Multi ComplexBinding Source with Same Destination
+#### Description
+Tests complex binding where multiple sources contribute to the same nested destination object.
+
+#### Source Code
+```csharp
+public class SourceTest1_17
+{
+    public string Name1 { get; set; } = "Source1";
+}
+
+public class SourceTest2_17
+{
+    public string Name2 { get; set; } = "Source2";
+}
+
+public class DestinationTest1_17
+{
+    [ComplexBind("DestinationTest2_17.Name", "Name2")]
+    [ComplexBind("DestinationTest2_17.Name", "Name1")]
+    public DestinationTest2_17 DestinationTest2_17 { get; set; }
+}
+
+public class DestinationTest2_17
+{
+    public string Name { get; set; }
+}
+```
+#### Expected Behavior
+- The `DestinationTest2_17.Name` should take the first available value from `Name1` or `Name2`.
+
+### Test 18: Binding to a Complex Object
+#### Description
+Maps a nested complex source object to a corresponding destination object using `[BindTo]`.
+
+#### Source Code
+```csharp
+public class SourceTest1_18
+{
+    public SourceTest2_18 SourceTest2_18 { get; set; } = new();
+}
+
+public class SourceTest2_18
+{
+    public string Name { get; set; } = "Source";
+}
+
+public class DestinationTest1_18
+{
+    public DestinationTest2_18 DestinationTest2_18 { get; set; }
+}
+
+public class DestinationTest2_18
+{
+    [BindTo("SourceTest2_18.Name")]
+    public string Name { get; set; }
+}
+```
+#### Expected Behavior
+- The `DestinationTest2_18.Name` should correctly map the value from `SourceTest2_18.Name`.
+
+### Test 19: Binding to a Complex Object with a `[BindTo]` Attribute on a Complex Object
+#### Description
+Maps a complex source object while also binding individual properties inside it.
+
+#### Source Code
+```csharp
+public class SourceTest1_19
+{
+    public SourceTest2_19 SourceTest2_19 { get; set; } = new();
+}
+
+public class SourceTest2_19
+{
+    public string Name { get; set; } = "Source";
+    public int Age { get; set; } = 25;
+}
+
+public class DestinationTest1_19
+{
+    [BindTo("SourceTest2_19")]
+    public DestinationTest2_19 DestinationTest2_19 { get; set; }
+}
+
+public class DestinationTest2_19
+{
+    [BindTo("Name")]
+    public string Name2 { get; set; }
+    public int Age { get; set; }
+}
+```
+#### Expected Behavior
+- `DestinationTest2_19.Name2` should receive the value from `SourceTest2_19.Name`.
+- `DestinationTest2_19.Age` should be mapped from `SourceTest2_19.Age`.
 
 # Object Flattening with DMapper
 
