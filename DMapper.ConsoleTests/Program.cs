@@ -24,7 +24,6 @@ using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapFlat
 using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapRelativePropertyKeyCorrectly;
 using TestCases.Benchmarks;
 
-
 class Program
 {
     static void Main(string[] args)
