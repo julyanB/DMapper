@@ -74,6 +74,7 @@ namespace DMapper.Helpers
                 {
                     return;
                 }
+
                 bool isLast = i == parts.Length - 1;
                 if (isLast)
                 {
@@ -125,6 +126,7 @@ namespace DMapper.Helpers
                                 {
                                     targetType = Nullable.GetUnderlyingType(targetType);
                                 }
+
                                 object converted = Convert.ChangeType(value, targetType);
                                 prop.SetValue(current, converted);
                             }
@@ -149,6 +151,7 @@ namespace DMapper.Helpers
                             return;
                         }
                     }
+
                     current = next;
                 }
             }
@@ -209,6 +212,7 @@ namespace DMapper.Helpers
                                 : candidate);
                         }
                     }
+
                     newEffectiveSourcePrefix = candidates.First();
                     mapping[currentDestKey] = candidates;
                 }
@@ -251,8 +255,10 @@ namespace DMapper.Helpers
                 {
                     destElem = srcElem;
                 }
+
                 destList.Add(destElem);
             }
+
             return destList;
         }
 
@@ -291,7 +297,7 @@ namespace DMapper.Helpers
             foreach (var prop in destType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var complexBindAttrs = prop.GetCustomAttributes(typeof(ComplexBindAttribute), false)
-                                            .Cast<ComplexBindAttribute>();
+                    .Cast<ComplexBindAttribute>();
                 foreach (var attr in complexBindAttrs)
                 {
                     for (int i = 0; i < Math.Max(attr.PropNames.Count, attr.Froms.Count); i++)
@@ -310,6 +316,7 @@ namespace DMapper.Helpers
                             {
                                 SetNestedValueDirect(destination, destPath, srcProp.Value, GlobalConstants.DefaultDotSeparator);
                             }
+
                             break;
                         }
                     }
