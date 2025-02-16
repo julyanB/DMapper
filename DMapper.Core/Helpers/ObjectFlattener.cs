@@ -54,6 +54,7 @@ public static class ObjectFlattener
         if (ReflectionHelper.IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix.Trim(separator.ToCharArray());
+            key = CleanKey(key, separator);
             dict[key] = new FlattenedProperty(obj, type);
             return dict;
         }
@@ -61,11 +62,13 @@ public static class ObjectFlattener
         if (obj is IEnumerable enumerable && !(obj is string))
         {
             string collKey = string.IsNullOrEmpty(prefix) ? "Value" : prefix.Trim(separator.ToCharArray());
+            collKey = CleanKey(collKey, separator);
             dict[collKey] = new FlattenedProperty(obj, obj.GetType());
             int index = 0;
             foreach (var item in enumerable)
             {
                 string key = string.IsNullOrEmpty(prefix) ? $"[{index}]" : $"{prefix}[{index}]";
+                key = CleanKey(key, separator);
                 var subDict = FlattenObject(item, key, separator, visited);
                 foreach (var kvp in subDict)
                     dict[kvp.Key] = kvp.Value;
@@ -90,6 +93,7 @@ public static class ObjectFlattener
             }
 
             string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}{separator}{prop.Name}";
+            key = CleanKey(key, separator);
             if (value == null || ReflectionHelper.IsSimpleType(prop.PropertyType))
             {
                 dict[key] = new FlattenedProperty(value, prop.PropertyType);
@@ -119,6 +123,7 @@ public static class ObjectFlattener
         if (ReflectionHelper.IsSimpleType(type))
         {
             string key = string.IsNullOrEmpty(prefix) ? "Value" : prefix;
+            key = CleanKey(key, separator);
             dict[key] = new FlattenedProperty(null, type);
             return dict;
         }
@@ -126,6 +131,7 @@ public static class ObjectFlattener
         if (typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string))
         {
             string collKey = string.IsNullOrEmpty(prefix) ? "Value" : prefix;
+            collKey = CleanKey(collKey, separator);
             dict[collKey] = new FlattenedProperty(null, type);
             Type elementType = null;
             if (type.IsArray)
@@ -135,6 +141,7 @@ public static class ObjectFlattener
             if (elementType != null)
             {
                 string key = string.IsNullOrEmpty(prefix) ? "[*]" : $"{prefix}[*]";
+                key = CleanKey(key, separator);
                 var subDict = FlattenStructure(elementType, key, separator, visited);
                 foreach (var kvp in subDict)
                     dict[kvp.Key] = kvp.Value;
@@ -146,6 +153,7 @@ public static class ObjectFlattener
         foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}{separator}{prop.Name}";
+            key = CleanKey(key, separator);
             if (ReflectionHelper.IsSimpleType(prop.PropertyType))
             {
                 dict[key] = new FlattenedProperty(null, prop.PropertyType);

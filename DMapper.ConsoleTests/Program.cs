@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using BenchmarkDotNet.Running;
 using DMapper.Attributes;
 using DMapper.Extensions; // Contains the MapTo extension method.
 using DMapper.Helpers;
@@ -21,6 +22,7 @@ using DMapper.Tests.Models.MappingTests.MapTo_MultiSourceMapping_ShouldMapDiffer
 using DMapper.Tests.Models.MappingTests.MapTo_NestedCollectionMapping_ShouldMapNestedListsCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapFlattenedInnerPropertyCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapRelativePropertyKeyCorrectly;
+using TestCases.Benchmarks;
 
 
 class Program
@@ -194,5 +196,8 @@ class Program
 
         Console.WriteLine("Press any key to exit...");
         Console.ReadKey();
+        
+        //uncomment this to run benchmarks
+        //var summary = BenchmarkRunner.Run<ComplexMappingBenchmarks>();
     }
 }

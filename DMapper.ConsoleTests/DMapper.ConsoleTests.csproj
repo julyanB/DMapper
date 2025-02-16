@@ -13,4 +13,8 @@
       <ProjectReference Include="..\DMapper.Tests\DMapper.Tests.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    </ItemGroup>
+
 </Project>
