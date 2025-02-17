@@ -795,6 +795,208 @@ The `FlattenResult` and `PropertyMapping` classes are essential for managing obj
 Flattening is useful for mapping, serialization, and data transformation. Using `ObjectFlattener`, you can easily convert objects into structured key-value pairs and rehydrate them back into objects when needed. The framework handles collections, nested properties, and dictionaries, making it a powerful tool for handling structured data.
 
 
+# DMapper Fluent API Documentation
+
+## Introduction
+DMapper's Fluent API provides a powerful and flexible way to define mappings between source and destination objects without relying on attributes. Instead, mappings are configured programmatically using a builder pattern. This approach offers greater control, allowing overrides, multi-source mappings, nested property bindings, and complex binding scenarios.
+
+## Getting Started
+### Installation
+Ensure that DMapper and its Fluent API extensions are installed in your project.
+
+```csharp
+using DMapper.Extensions;
+using DMapper.Helpers.FluentConfigurations.Contracts;
+```
+
+## Defining Mappings
+Mappings are defined in destination classes by implementing the `IDMapperConfiguration` interface. The `ConfigureMapping` method allows specifying source properties using the `builder.Map` method.
+
+### Basic Mapping
+In this example, a simple mapping is defined where properties from `SourceFluentTest1` are mapped to `DestinationFluentTest1`.
+
+```csharp
+public class SourceFluentTest1
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Source { get; set; }
+}
+
+public class DestinationFluentTest1 : IDMapperConfiguration
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Destination { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Destination, "Source");
+    }
+}
+```
+
+### Mapping Nested Properties
+For mapping nested properties, dot notation can be used.
+
+```csharp
+public class SourceFluentTest2
+{
+    public string Outer { get; set; }
+    public InnerSourceFluent Inner { get; set; } = new InnerSourceFluent();
+}
+
+public class InnerSourceFluent
+{
+    public string InnerProp { get; set; } = "InnerValue";
+}
+
+public class DestinationFluentTest2 : IDMapperConfiguration
+{
+    public string Outer { get; set; }
+    public InnerDestFluent Inner { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Outer, "Outer")
+            .Map(x => Inner.MyInner, "Inner.InnerProp");
+    }
+}
+
+public class InnerDestFluent : IDMapperConfiguration
+{
+    public string MyInner { get; set; }
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => MyInner, "InnerProp");
+    }
+}
+```
+
+### Mapping Collections
+Collections (lists and arrays) can be mapped similarly.
+
+```csharp
+public class Src1_Fluent
+{
+    public string Name { get; set; } = "Pesho";
+    public List<Src2_Fluent> Src2List { get; set; } = new List<Src2_Fluent> { new Src2_Fluent(), new Src2_Fluent() };
+}
+
+public class Src2_Fluent
+{
+    public int Age { get; set; } = 10;
+    public string Name { get; set; } = "John";
+}
+
+public class Dest1_Fluent : IDMapperConfiguration
+{
+    public string Name { get; set; }
+    public List<Dest2_Fluent> Src2List { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Name, "Name")
+            .Map(x => Src2List, "Src2List");
+    }
+}
+
+public class Dest2_Fluent : IDMapperConfiguration
+{
+    public int? Age { get; set; }
+    public string Name { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Age, "Age")
+            .Map(x => Name, "Name");
+    }
+}
+```
+
+### Multi-Source Mapping
+Properties from different source objects can be mapped into a single destination property using multiple candidate keys.
+
+```csharp
+public class SourceFluentTest1_16
+{
+    public string Name1 { get; set; } = "Source1";
+}
+
+public class SourceFluentTest2_16
+{
+    public string Name2 { get; set; } = "Source2";
+}
+
+public class DestinationFluentTest16 : IDMapperConfiguration
+{
+    public string Name { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Name, "Name1", "Name2");
+    }
+}
+```
+
+### Complex Binding
+Complex objects and nested properties can be mapped explicitly.
+
+```csharp
+public class SourceFluentTest3
+{
+    public string Data { get; set; } = "DataFromSource";
+    public NestedSource_Fluent Nested { get; set; } = new NestedSource_Fluent();
+}
+
+public class NestedSource_Fluent
+{
+    public string Info { get; set; } = "NestedInfo";
+}
+
+public class DestinationFluentTest3 : IDMapperConfiguration
+{
+    public string Data { get; set; }
+    public NestedDest_Fluent NestedDestination { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Data, "Data")
+            .Map(x => NestedDestination.Info, "Nested.Info");
+    }
+}
+
+public class NestedDest_Fluent
+{
+    public string Info { get; set; }
+}
+```
+
+## Handling Circular References
+To prevent infinite loops when mapping objects with circular references, mappings should be controlled.
+
+```csharp
+public class SourceFluentTest15
+{
+    public string Name { get; set; } = "Parent";
+    public SourceFluentTest15 Child { get; set; }
+}
+
+public class DestinationFluentTest15 : IDMapperConfiguration
+{
+    public string Name { get; set; }
+    public DestinationFluentTest15 Child { get; set; }
+
+    public void ConfigureMapping(IDMapperConfigure builder)
+    {
+        builder.Map(x => Name, "Name"); // Avoids recursion
+    }
+}
+```
+
+## Conclusion
+DMapper's Fluent API provides fine-grained control over mapping definitions, supporting nested properties, collections, multi-source inputs, and circular reference handling. By leveraging programmatic configurations, developers can customize mappings without modifying source models.
+
 
 
 ---
