@@ -7,6 +7,8 @@ using System.Reflection;
 using DMapper.Attributes;
 using DMapper.Constants;
 using DMapper.Extensions;
+using DMapper.Helpers.FluentConfigurations;
+using DMapper.Helpers.FluentConfigurations.Contracts;
 using DMapper.Helpers.Models;
 
 namespace DMapper.Helpers
@@ -219,10 +221,31 @@ namespace DMapper.Helpers
         /// </example>
         private static Dictionary<string, List<string>> BuildMappingDictionary_V6(Type destinationType)
         {
+            // (1) Build the dictionary from reflection/attributes.
             var mapping = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             BuildMappingDictionaryRecursive_V6(destinationType, "", mapping, null, new HashSet<Type>());
+
+            // (2) Check if the destination type implements the fluent configuration interface.
+            if (typeof(IDMapperConfiguration).IsAssignableFrom(destinationType))
+            {
+                // Create an instance to access its configuration.
+                var instance = Activator.CreateInstance(destinationType) as IDMapperConfiguration;
+                if (instance != null)
+                {
+                    var builder = new DMapperConfigure();
+                    instance.ConfigureMapping(builder);
+                    var fluentMappings = builder.GetMappings();
+
+                    foreach (var kvp in fluentMappings)
+                    {
+                        mapping[kvp.Key] = kvp.Value;
+                    }
+                }
+            }
+
             return mapping;
         }
+
 
         /// <summary>
         /// Recursively builds the mapping dictionary by traversing the destination type's property hierarchy.

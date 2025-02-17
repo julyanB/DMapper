@@ -1,5 +1,23 @@
 ﻿using Xunit;
 using DMapper.Extensions;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_AbsoluteBindTo_ShouldMapFullPathPropertyCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ArrayMapping_ShouldMapArrayPropertiesCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_BasicMapping_ShouldMapTopLevelPropertiesCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_CollectionMapping_ShouldMapListOfComplexObjectsCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexBindMapping_ShouldMapAbsoluteKeyCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexBindMapping_ShouldMapNestedPropertyUsingFluentConfig;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexObjectBinding_ShouldBindComplexObjectPropertyCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexObjectWithBindTo_ShouldBindComplexObjectWithFluentOverrideCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_CycleDependencyMapping_ShouldHandleCircularReferencesGracefully;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_FallbackMapping_ShouldUseFallbackBindToCandidate;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_InnerMapping_ShouldMapNestedPropertiesCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ListMappingWithBindTo_ShouldMapListCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ListMappingWithPropertyBindTo_ShouldMapPropertiesOnListItemsCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_MultiComplexBindingMapping_ShouldMapMultipleComplexSourcesCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_MultiSourceMapping_ShouldMapDifferentSourcesToSameDestination;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_NestedCollectionMapping_ShouldMapCollectionsCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_NestedRelativeBindTo_ShouldMapFlattenedInnerPropertyCorrectly;
+using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_RelativeBindTo_ShouldMapNestedRelativePropertyCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_AbsoluteBindTo_ShouldMapFullPathPropertyCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_ArrayMapping_ShouldMapArrayPropertiesCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_CollectionMapping_ShouldMapListAndArrayOfComplexObjectsCorrectly;
@@ -27,11 +45,11 @@ namespace DMapper.Tests
         public void MapTo_BasicMapping_ShouldMapTopLevelPropertiesCorrectly()
         {
             // Arrange
-            var src = new Source1 
-            { 
-                Id = 1, 
-                Name = "Test1", 
-                Source = "SourceValue" 
+            var src = new Source1
+            {
+                Id = 1,
+                Name = "Test1",
+                Source = "SourceValue"
             };
 
             // Act
@@ -330,5 +348,6 @@ namespace DMapper.Tests
             Assert.Equal("Source", dest.DestinationTest2_19?.Name2);
             Assert.Equal(25, dest.DestinationTest2_19?.Age);
         }
+
     }
 }
