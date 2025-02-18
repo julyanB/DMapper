@@ -293,7 +293,7 @@ namespace DMapper.Helpers
                     var candidates = new List<string>();
                     foreach (var candidate in bindAttr.PropNames)
                     {
-                        if (candidate.Contains(GlobalConstants.DefaultDotSeparator))
+                        if (candidate.Contains(GlobalConstants.DefaultDotSeparator)  || bindAttr.UseLiteralName)
                         {
                             candidates.Add(candidate);
                         }

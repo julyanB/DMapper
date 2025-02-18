@@ -89,6 +89,7 @@ namespace DMapper.Tests
             // Assert
             Assert.Equal("DataFromSource", dest.Data);
             Assert.Equal("NestedInfo", dest.NestedDestination?.Info);
+            Assert.Equal("NestedInfo_2", dest.NestedDestination?.NestedInfo);
         }
 
         [Fact]

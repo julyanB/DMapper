@@ -9,11 +9,14 @@ namespace DMapper.Attributes;
 public class BindToAttribute : Attribute
 {
     public List<string> PropNames { get; set; }
+    public bool UseLiteralName { get; set; }
 
-    public BindToAttribute(string dest)
+    public BindToAttribute(string dest, bool useLiteralName = false)
     {
         PropNames = dest.Split(",", StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim())
             .ToList();
+        
+        UseLiteralName = useLiteralName;
     }
 }
