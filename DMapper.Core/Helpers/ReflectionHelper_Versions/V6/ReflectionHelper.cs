@@ -150,11 +150,16 @@ namespace DMapper.Helpers
                         try
                         {
                             Type targetType = prop.PropertyType;
+                            
                             // Handle enum conversion.
-                            if (targetType.IsEnum)
+                            Type enumType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                            if (enumType.IsEnum)
                             {
-                                object enumVal = Enum.Parse(targetType, value.ToString());
-                                prop.SetValue(current, enumVal);
+                                if (Enum.TryParse(enumType, value.ToString(), ignoreCase: true, out object enumValue))
+                                {
+                                    prop.SetValue(current, enumValue);
+                                    continue;
+                                }
                             }
                             else if (targetType == value.GetType() || targetType.IsAssignableFrom(value.GetType()))
                             {

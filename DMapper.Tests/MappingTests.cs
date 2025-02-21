@@ -1,5 +1,6 @@
 ﻿using Xunit;
 using DMapper.Extensions;
+using DMapper.Tests.Models.Attribute_MappingTests.Map_NonNullable_To_NonNullable_ShouldMapCorrectly;
 using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_AbsoluteBindTo_ShouldMapFullPathPropertyCorrectly;
 using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ArrayMapping_ShouldMapArrayPropertiesCorrectly;
 using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_BasicMapping_ShouldMapTopLevelPropertiesCorrectly;
@@ -350,5 +351,58 @@ namespace DMapper.Tests
             Assert.Equal(25, dest.DestinationTest2_19?.Age);
         }
 
+        [Fact]
+        public void MapTo_Enum_NonNullable_To_NonNullable_ShouldMapCorrectly()
+        {
+            // Arrange
+            var src = new SourceEnumNonNullable { Enum = TestEnum21_1.Test2 };
+
+            // Act
+            var dest = src.MapTo<DestinationEnumNonNullable>();
+
+            // Assert
+            Assert.Equal(TestEnum21_2.Test2, dest.Enum);
+        }
+
+        [Fact]
+        public void MapTo_Enum_NonNullable_To_Nullable_ShouldMapCorrectly()
+        {
+            // Arrange
+            var src = new SourceEnumNonNullable { Enum = TestEnum21_1.Test2 };
+
+            // Act
+            var dest = src.MapTo<DestinationEnumNullable>();
+
+            // Assert
+            Assert.True(dest.Enum.HasValue);
+            Assert.Equal(TestEnum21_2.Test2, dest.Enum.Value);
+        }
+
+        [Fact]
+        public void MapTo_Enum_Nullable_WithValue_To_NonNullable_ShouldMapCorrectly()
+        {
+            // Arrange
+            var src = new SourceEnumNullable { Enum = TestEnum21_1.Test2 };
+
+            // Act
+            var dest = src.MapTo<DestinationEnumNonNullable2>();
+
+            // Assert
+            Assert.Equal(TestEnum21_2.Test2, dest.Enum);
+        }
+
+        [Fact]
+        public void MapTo_Enum_Nullable_WithNull_To_Nullable_ShouldRemainNull()
+        {
+            // Arrange
+            var src = new SourceEnumNullable { Enum = null };
+
+            // Act
+            var dest = src.MapTo<DestinationEnumNullable2>();
+
+            // Assert
+            Assert.False(dest.Enum.HasValue);
+        }
+        
     }
 }
