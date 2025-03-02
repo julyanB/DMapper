@@ -13,9 +13,12 @@
         <RepositoryUrl>https://github.com/julyan97/DMapper</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>object-mapper reflection mapping copy nested-objects</PackageTags>
-        <PackageReleaseNotes>Initial release of DMapper with advanced recursive mapping, attribute-based configuration, and deep copy features.</PackageReleaseNotes>
+        <PackageReleaseNotes>Features: 
+1. BindTo["", useLiteralName]:
+    The `[BindTo]` attribute is used to decorate destination properties with one or more source property names. By default, if you supply a candidate source name that does not include a dot (used for nested properties), the mapping engine will automatically prepend an effective source prefix to it. In cases where you want to use the provided source name exactly as written (i.e., as a literal), you can enable the literal naming mode.</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
+        <Version>2.0.8</Version>
     </PropertyGroup>
 
     <ItemGroup>

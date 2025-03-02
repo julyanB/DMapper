@@ -998,6 +998,88 @@ public class DestinationFluentTest15 : IDMapperConfiguration
 DMapper's Fluent API provides fine-grained control over mapping definitions, supporting nested properties, collections, multi-source inputs, and circular reference handling. By leveraging programmatic configurations, developers can customize mappings without modifying source models.
 
 
+# Release 2.0.8
+
+# BindTo["", useLiteralName]
+
+The `[BindTo]` attribute is used to decorate destination properties with one or more source property names. By default, if you supply a candidate source name that does not include a dot (used for nested properties), the mapping engine will automatically prepend an effective source prefix to it. In cases where you want to use the provided source name exactly as written (i.e., as a literal), you can enable the literal naming mode.
+
+## Overview
+
+The `[BindTo]` attribute accepts two parameters:
+
+- **dest**: A comma-separated list of candidate source property names.  
+- **useLiteralName** *(optional)*: A boolean flag (default is `false`) that, when set to `true`, instructs the mapper to use the provided candidate names exactly as specified without any prefixing.
+
+This option is useful when your source property names are globally unique or when you wish to bypass the default behavior of prefixing candidate names with the current source path.
+
+## Default Behavior (Without `UseLiteralName`)
+
+When you apply the attribute like this:
+
+```csharp
+[BindTo("Name")]
+public string FullName { get; set; }
+```
+
+- If the candidate `"Name"` does not include a dot (`.`), the mapping engine will automatically prepend the effective source prefix. For example, if the current source prefix is `"Person"`, the engine will look for `"Person.Name"`.
+
+## Using `UseLiteralName`
+
+By setting the `useLiteralName` parameter to `true`, the candidate name is used as-is without any automatic prefixing:
+
+```csharp
+[BindTo("Name", useLiteralName: true)]
+public string FullName { get; set; }
+```
+
+- Here, the mapper will search for a source property exactly named `"Name"` regardless of any effective prefix. This is particularly handy if your source property naming does not follow the default nested structure or if it’s already fully qualified.
+
+## How It Works Internally
+
+During mapping (for example, in version 6 of the mapping engine), the mapping dictionary is built by examining each destination property. If a destination property is decorated with `[BindTo]`, the engine:
+
+1. **Checks for Dot Notation:**  
+   - If the candidate name already contains a dot, it is assumed to be fully qualified.
+2. **Respects `UseLiteralName`:**  
+   - If `UseLiteralName` is set to `true`, the candidate is used as provided—no prefix is added.
+3. **Defaults to Relative Names:**  
+   - Otherwise, the effective source prefix is prepended (with a dot separator) to the candidate name.
+
+This behavior ensures that you have the flexibility to define source property mappings either relatively (default) or absolutely (literal).
+
+## Practical Example
+
+Imagine you have a destination property that should map to a source property named `"Name"`:
+
+- **Relative Mapping (Default):**
+
+  ```csharp
+  // If the effective source prefix is "Employee", the mapper looks for "Employee.Name".
+  [BindTo("Name")]
+  public string FullName { get; set; }
+  ```
+
+- **Literal Mapping:**
+
+  ```csharp
+  // The mapper will directly use "Name" as the source property name.
+  [BindTo("Name", useLiteralName: true)]
+  public string FullName { get; set; }
+  ```
+
+## Summary
+
+- **Default Behavior:**  
+  Candidate names without a dot are prefixed with the effective source path.
+
+- **Literal Mode (`UseLiteralName = true`)**:  
+  Candidate names are used exactly as provided—ideal for source properties that do not adhere to the destination’s naming conventions.
+
+By understanding and using the `UseLiteralName` option, you can control how the mapper interprets source property names and tailor the mapping behavior to your specific requirements.
+
+
+
 
 ---
 
