@@ -1,24 +1,6 @@
-﻿using Xunit;
-using DMapper.Extensions;
+﻿using DMapper.Extensions;
 using DMapper.Tests.Models.Attribute_MappingTests.Map_NonNullable_To_NonNullable_ShouldMapCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_AbsoluteBindTo_ShouldMapFullPathPropertyCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ArrayMapping_ShouldMapArrayPropertiesCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_BasicMapping_ShouldMapTopLevelPropertiesCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_CollectionMapping_ShouldMapListOfComplexObjectsCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexBindMapping_ShouldMapAbsoluteKeyCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexBindMapping_ShouldMapNestedPropertyUsingFluentConfig;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexObjectBinding_ShouldBindComplexObjectPropertyCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ComplexObjectWithBindTo_ShouldBindComplexObjectWithFluentOverrideCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_CycleDependencyMapping_ShouldHandleCircularReferencesGracefully;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_FallbackMapping_ShouldUseFallbackBindToCandidate;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_InnerMapping_ShouldMapNestedPropertiesCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ListMappingWithBindTo_ShouldMapListCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_ListMappingWithPropertyBindTo_ShouldMapPropertiesOnListItemsCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_MultiComplexBindingMapping_ShouldMapMultipleComplexSourcesCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_MultiSourceMapping_ShouldMapDifferentSourcesToSameDestination;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_NestedCollectionMapping_ShouldMapCollectionsCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_NestedRelativeBindTo_ShouldMapFlattenedInnerPropertyCorrectly;
-using DMapper.Tests.Models.FluentApi_MappingTests.FluentMapping_RelativeBindTo_ShouldMapNestedRelativePropertyCorrectly;
+using DMapper.Tests.Models.Attribute_MappingTests.MapTo_FallbackEnumMapping_ShouldRemainNullForNullableEnum_WhenSourceIsNull;
 using DMapper.Tests.Models.MappingTests.MapTo_AbsoluteBindTo_ShouldMapFullPathPropertyCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_ArrayMapping_ShouldMapArrayPropertiesCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_CollectionMapping_ShouldMapListAndArrayOfComplexObjectsCorrectly;
@@ -35,8 +17,7 @@ using DMapper.Tests.Models.MappingTests.MapTo_MultiComplexBindingMapping_ShouldM
 using DMapper.Tests.Models.MappingTests.MapTo_MultiSourceMapping_ShouldMapDifferentSourcesToSameDestination;
 using DMapper.Tests.Models.MappingTests.MapTo_NestedCollectionMapping_ShouldMapNestedListsCorrectly;
 using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapFlattenedInnerPropertyCorrectly;
-using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapRelativePropertyKeyCorrectly; // Contains the MapTo extension method.
-// Ensure the appropriate namespaces for your source/destination classes are referenced.
+using DMapper.Tests.Models.MappingTests.MapTo_NestedRelativeBindTo_ShouldMapRelativePropertyKeyCorrectly;
 
 namespace DMapper.Tests
 {
@@ -401,6 +382,46 @@ namespace DMapper.Tests
             var dest = src.MapTo<DestinationEnumNullable2>();
 
             // Assert
+            Assert.False(dest.Enum.HasValue);
+        }
+        
+        
+                // Test 1: For a non‑nullable enum property, if the candidate provided by BindTo is invalid,
+        // the mapper should fall back to the property name and convert the enum correctly.
+        [Fact]
+        public void MapTo_FallbackEnumMapping_ShouldUseFallbackCandidateForNonNullableEnum()
+        {
+            // Arrange: Source has an "Enum" property of type TestEnumA.
+            var src = new SourceEnumFallback { Enum = TestEnumA.Value1 };
+            // Act: Destination enum property is decorated with [BindTo("InvalidCandidate")];
+            // fallback to "Enum" should occur.
+            var dest = src.MapTo<DestinationEnumFallback>();
+            // Assert: The destination enum should match the source converted to TestEnumB.
+            Assert.Equal(TestEnumB.Value1, dest.Enum);
+        }
+
+        // Test 2: For a nullable enum property with a value, if the candidate is invalid the fallback is used.
+        [Fact]
+        public void MapTo_FallbackEnumMapping_ShouldUseFallbackCandidateForNullableEnum_WithValue()
+        {
+            // Arrange: Source has a non-null value in the nullable enum property.
+            var src = new SourceEnumNullableFallback { Enum = TestEnumA.Value2 };
+            // Act: Mapping using an invalid candidate should fall back to the property name.
+            var dest = src.MapTo<DestinationEnumNullableFallback>();
+            // Assert: The fallback conversion maps correctly.
+            Assert.True(dest.Enum.HasValue);
+            Assert.Equal(TestEnumB.Value2, dest.Enum.Value);
+        }
+
+        // Test 3: For a nullable enum property when the source value is null, the destination remains null.
+        [Fact]
+        public void MapTo_FallbackEnumMapping_ShouldRemainNullForNullableEnum_WhenSourceIsNull()
+        {
+            // Arrange: Source enum property is null.
+            var src = new SourceEnumNullableFallback { Enum = null };
+            // Act
+            var dest = src.MapTo<DestinationEnumNullableFallback>();
+            // Assert: The destination nullable enum remains null.
             Assert.False(dest.Enum.HasValue);
         }
         

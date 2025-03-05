@@ -150,7 +150,7 @@ namespace DMapper.Helpers
                         try
                         {
                             Type targetType = prop.PropertyType;
-                            
+
                             // Handle enum conversion.
                             Type enumType = Nullable.GetUnderlyingType(targetType) ?? targetType;
                             if (enumType.IsEnum)
@@ -298,7 +298,7 @@ namespace DMapper.Helpers
                     var candidates = new List<string>();
                     foreach (var candidate in bindAttr.PropNames)
                     {
-                        if (candidate.Contains(GlobalConstants.DefaultDotSeparator)  || bindAttr.UseLiteralName)
+                        if (candidate.Contains(GlobalConstants.DefaultDotSeparator) || bindAttr.UseLiteralName)
                         {
                             candidates.Add(candidate);
                         }
@@ -308,6 +308,15 @@ namespace DMapper.Helpers
                                 ? effectiveSourcePrefix + GlobalConstants.DefaultDotSeparator + candidate
                                 : candidate);
                         }
+                    }
+
+                    // Fallback: always add the original property name if not already present.
+                    string fallbackCandidate = effectiveSourcePrefix != null
+                        ? effectiveSourcePrefix + GlobalConstants.DefaultDotSeparator + prop.Name
+                        : prop.Name;
+                    if (!candidates.Any(c => c.Equals(fallbackCandidate, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        candidates.Add(fallbackCandidate);
                     }
 
                     newEffectiveSourcePrefix = candidates.First();
