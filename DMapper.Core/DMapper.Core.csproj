@@ -13,12 +13,25 @@
         <RepositoryUrl>https://github.com/julyan97/DMapper</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>object-mapper reflection mapping copy nested-objects</PackageTags>
-        <PackageReleaseNotes>Features: 
-1. BindTo["", useLiteralName]:
-    The `[BindTo]` attribute is used to decorate destination properties with one or more source property names. By default, if you supply a candidate source name that does not include a dot (used for nested properties), the mapping engine will automatically prepend an effective source prefix to it. In cases where you want to use the provided source name exactly as written (i.e., as a literal), you can enable the literal naming mode.</PackageReleaseNotes>
+        <PackageReleaseNotes>Release Notes – DMapper v2.0.9
+Enhancements and Bug Fixes:
+
+Fallback Mapping for Enums:
+Issue Fixed: Previously, when using the [BindTo] attribute on enum properties, if none of the candidate names matched a source property, the mapper did not correctly fall back to using the destination property’s original name.
+Improvement: The mapping dictionary builder now appends the original property name as a fallback candidate if none of the provided [BindTo] names are valid. This ensures that both non‑nullable and nullable enum mappings use the fallback property name to correctly convert and assign enum values.
+Verification: New tests have been added to cover:
+Mapping from non‑nullable source enums to non‑nullable destination enums.
+Mapping from non‑nullable source enums to nullable destination enums.
+Mapping from nullable source enums (with and without values) to corresponding destination types.
+Robust Enum Conversion:
+The enum conversion logic now checks for invalid candidate names and reliably converts enum values from the source type to the destination type using the fallback candidate when necessary.
+General Enhancements:
+
+Improved overall stability when handling [BindTo] attributes on both simple and nested properties.
+Added comprehensive tests for fallback behavior in enum mapping, ensuring consistent results across various scenarios.</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.0.8</Version>
+        <Version>2.0.9</Version>
     </PropertyGroup>
 
     <ItemGroup>
