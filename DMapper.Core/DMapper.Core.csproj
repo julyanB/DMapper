@@ -21,10 +21,18 @@ Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
         <Version>2.0.10</Version>
+        <PackageIcon>D-Logo.png</PackageIcon>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
         <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="D-Logo.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
     </ItemGroup>
 </Project>
