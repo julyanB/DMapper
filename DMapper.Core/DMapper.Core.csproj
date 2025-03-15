@@ -20,7 +20,7 @@ Flexible Destination Types: Supports mapping to arrays, generic lists, and colle
 Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo&lt;T&gt; transformation to each element in the collection.</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.0.10</Version>
+        <Version>2.0.11</Version>
         <PackageIcon>D-Logo.png</PackageIcon>
     </PropertyGroup>
 
@@ -29,10 +29,12 @@ Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo
         <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <PackageIcon>D-Logo.png</PackageIcon>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
     <ItemGroup>
-      <None Update="D-Logo.png">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
+        <None Include="D-Logo.png" Pack="true" PackagePath="." />
     </ItemGroup>
 </Project>
