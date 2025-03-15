@@ -1079,6 +1079,49 @@ Imagine you have a destination property that should map to a source property nam
 By understanding and using the `UseLiteralName` option, you can control how the mapper interprets source property names and tailor the mapping behavior to your specific requirements.
 
 
+# Release 2.0.10
+# Collection Mapping Documentation
+
+## Overview
+
+The Collection Mapping feature in DMapper provides a straightforward and powerful way to map collections, including lists and arrays, from one type to another using the `MapTo` extension method. It supports automatic mapping of complex types, arrays, and generic collections.
+
+## Usage
+
+### Mapping Lists and Arrays
+
+You can map any collection implementing `IEnumerable` to arrays or generic lists:
+
+```csharp
+var sourceList = new List<SourceType> { /* items */ };
+var mappedList = sourceList.MapTo<List<DestinationType>>();
+
+var sourceArray = new SourceType[] { /* items */ };
+var mappedArray = sourceArray.MapTo<DestinationType[]>();
+```
+
+### Example
+
+```csharp
+// Given a source collection:
+var source = new List<SourceItem>
+{
+    new SourceType { Name = "Alpha", Age = 20 },
+    new SourceType { Name = "Beta", Age = 25 }
+};
+
+// Map to a destination collection:
+var result = source.MapTo<List<DestinationType>>();
+
+// Result:
+// [{ Name: "Alpha", Age: 20 }, { Name: "Beta", Age: 25 }]
+```
+
+### Supported Destination Types
+
+- Arrays: `DestinationType[]`
+- Generic Lists: `List<DestinationType>`
+- Other generic collection types with constructors accepting `IEnumerable<T>`.
 
 
 ---
