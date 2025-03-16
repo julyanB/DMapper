@@ -17,10 +17,11 @@
 Collection Mapping Support: Introduced the ability to map collections (List&lt;T&gt;, T[], and other IEnumerable&lt;T&gt; implementations) seamlessly using the MapTo&lt;T&gt; extension method.
 Automatic Element Mapping: Each item in a source collection is individually mapped to the corresponding destination type, ensuring deep transformation support.
 Flexible Destination Types: Supports mapping to arrays, generic lists, and collections with constructors accepting IEnumerable&lt;T&gt;.
-Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo&lt;T&gt; transformation to each element in the collection.</PackageReleaseNotes>
+Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo&lt;T&gt; transformation to each element in the collection.
+Optimized FlattenResult to use V6 from V5</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.1.0</Version>
+        <Version>2.1.1</Version>
         <PackageIcon>D-Logo.png</PackageIcon>
         <PackageId>DSeries.DMapper.Core</PackageId>
     </PropertyGroup>
