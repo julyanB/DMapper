@@ -20,8 +20,9 @@ Flexible Destination Types: Supports mapping to arrays, generic lists, and colle
 Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo&lt;T&gt; transformation to each element in the collection.</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.0.11</Version>
+        <Version>2.1.0</Version>
         <PackageIcon>D-Logo.png</PackageIcon>
+        <PackageId>DSeries.DMapper.Core</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
