@@ -234,7 +234,7 @@ public class FlattenResult
                 if (srcElem != null && !ReflectionHelper.IsSimpleType(elementType))
                 {
                     destElem = Activator.CreateInstance(elementType);
-                    destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
+                    destElem = ReflectionHelper.ReplacePropertiesRecursive_V6((dynamic)destElem, srcElem);
                 }
                 else
                 {
@@ -267,7 +267,7 @@ public class FlattenResult
                 if (srcElem != null && !ReflectionHelper.IsSimpleType(elementType))
                 {
                     destElem = Activator.CreateInstance(elementType);
-                    destElem = ReflectionHelper.ReplacePropertiesRecursive_V5((dynamic)destElem, srcElem);
+                    destElem = ReflectionHelper.ReplacePropertiesRecursive_V6((dynamic)destElem, srcElem);
                 }
                 else
                 {

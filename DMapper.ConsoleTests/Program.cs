@@ -194,9 +194,7 @@ class Program
         Console.WriteLine(new string('-', 40));
 
         Console.WriteLine("Press any key to exit...");
-        Console.ReadKey();
         
-        //uncomment this to run benchmarks
-        //var summary = BenchmarkRunner.Run<ComplexMappingBenchmarks>();
+        var summary = BenchmarkRunner.Run<ComplexMappingBenchmarks>();
     }
 }
