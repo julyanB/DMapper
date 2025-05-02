@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using DMapper.Attributes;
 using DMapper.Constants;
+using DMapper.Converters;
 using DMapper.Extensions;
 using DMapper.Helpers.FluentConfigurations;
 using DMapper.Helpers.FluentConfigurations.Contracts;
@@ -51,35 +52,47 @@ namespace DMapper.Helpers
         /// dest = ReflectionHelper.ReplacePropertiesRecursive_V6(dest, src);
         /// </code>
         /// </example>
-        public static TDestination ReplacePropertiesRecursive_V6<TDestination, TSource>(TDestination destination, TSource source)
+        public static TDestination ReplacePropertiesRecursive_V6<TDestination, TSource>(
+            TDestination destination,
+            TSource source)
         {
-            // 1. Flatten the source and trim keys.
+            // 1) Flatten source
             FlattenResult srcFlatten = ObjectFlattener.Flatten(source, GlobalConstants.DefaultDotSeparator);
-            var fixedSrc = srcFlatten.Properties;
+            var fixedSrc = srcFlatten.Properties; // alias
 
-            // 2. Build the mapping dictionary from the destination type.
+            // 2) Build mapping + converter caches
             Dictionary<string, List<string>> mappingDict = BuildMappingDictionary_V6(typeof(TDestination));
+            var converterCache = BuildConverterCache_V6(typeof(TDestination));
 
-            // 3. For each mapping entry, try each candidate source key.
+            // 3) Direct mapping with per‑property converters
             foreach (var mapping in mappingDict)
             {
                 string destKey = mapping.Key;
-                foreach (var candidate in mapping.Value)
+
+                foreach (string candidate in mapping.Value)
                 {
-                    if (fixedSrc.TryGetValue(candidate, out FlattenedProperty srcProp) &&
-                        srcProp.Value != null)
+                    if (!fixedSrc.TryGetValue(candidate, out FlattenedProperty srcProp) ||
+                        srcProp.Value is null)
+                        continue; // try next candidate
+
+                    // Apply converter if one is registered for this destination key
+                    object valueToAssign = srcProp.Value;
+                    if (converterCache.TryGetValue(destKey, out var conv) && conv != null)
                     {
-                        SetNestedValueDirect_V6(destination, destKey, srcProp.Value, GlobalConstants.DefaultDotSeparator);
-                        break; // Use the first candidate that yields a value.
+                        valueToAssign = conv.Convert(valueToAssign);
                     }
+
+                    SetNestedValueDirect_V6(destination, destKey, valueToAssign, GlobalConstants.DefaultDotSeparator);
+                    break; // stop after first successful candidate
                 }
             }
 
-            // 4. Process any ComplexBind attributes.
+            // 4) ComplexBind attributes
             ProcessComplexBindAttributes_V6(source, destination);
 
             return destination;
         }
+
 
         #region Direct Nested-Assignment Helper
 
@@ -147,7 +160,7 @@ namespace DMapper.Helpers
 
                         continue;
                     }
-                    
+
                     try
                     {
                         Type targetType = prop.PropertyType;
@@ -509,6 +522,34 @@ namespace DMapper.Helpers
             }
 
             return false;
+        }
+
+        private static Dictionary<string, IDMapperPropertyConverter> BuildConverterCache_V6(
+            Type destinationType,
+            string separator = GlobalConstants.DefaultDotSeparator)
+        {
+            var cache = new Dictionary<string, IDMapperPropertyConverter>(StringComparer.OrdinalIgnoreCase);
+            BuildRec(destinationType, "", new HashSet<Type>());
+            return cache;
+
+            void BuildRec(Type type, string prefix, HashSet<Type> visited)
+            {
+                if (type == null || type == typeof(string) || visited.Contains(type)) return;
+                visited.Add(type);
+
+                foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    string destKey = string.IsNullOrEmpty(prefix)
+                        ? prop.Name
+                        : $"{prefix}{separator}{prop.Name}";
+
+                    if (prop.GetCustomAttribute<DMapperConverterAttribute>() is { } vcAttr)
+                        cache[destKey] = vcAttr.Instantiate();
+
+                    if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                        BuildRec(prop.PropertyType, destKey, visited);
+                }
+            }
         }
     }
 }
