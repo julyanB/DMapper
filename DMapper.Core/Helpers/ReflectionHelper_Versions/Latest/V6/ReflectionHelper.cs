@@ -103,36 +103,37 @@ namespace DMapper.Helpers
         ///   <item>Set the "Street" property of the Address object to the provided value.</item>
         /// </list>
         /// </example>
-        private static void SetNestedValueDirect_V6(object destination, string flattenedKey, object value, string separator)
+        /// 
+        private static void SetNestedValueDirect_V6(
+            object destination,
+            string flattenedKey,
+            object value,
+            string separator)
         {
             string[] parts = flattenedKey.Split(new string[] { separator }, StringSplitOptions.None);
             object current = destination;
+
             for (int i = 0; i < parts.Length; i++)
             {
                 string part = parts[i];
                 PropertyInfo prop = current.GetType().GetProperty(part, BindingFlags.Public | BindingFlags.Instance);
-                if (prop == null)
-                {
-                    return;
-                }
+                if (prop == null) return;
 
                 bool isLast = i == parts.Length - 1;
+
                 if (isLast)
                 {
-                    // If the destination property is a collection (IList) and the source value is an IEnumerable (but not string)
-                    if (typeof(IList).IsAssignableFrom(prop.PropertyType) && value is IEnumerable srcEnumerable && !(value is string))
+                    if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
+                        value is IEnumerable srcEnumerable && !(value is string))
                     {
-                        // Determine the element type of the destination collection.
                         Type destElementType = prop.PropertyType.IsArray
                             ? prop.PropertyType.GetElementType()
                             : (prop.PropertyType.IsGenericType
                                 ? prop.PropertyType.GetGenericArguments().FirstOrDefault()
                                 : typeof(object));
 
-                        // Create and map the collection elements.
                         IList destList = CreateAndMapCollection_V6(srcEnumerable, destElementType);
 
-                        // If the destination property is an array, convert the list to an array.
                         if (prop.PropertyType.IsArray)
                         {
                             Array array = Array.CreateInstance(destElementType, destList.Count);
@@ -143,49 +144,58 @@ namespace DMapper.Helpers
                         {
                             prop.SetValue(current, destList);
                         }
+
+                        continue;
                     }
-                    else
+                    
+                    try
                     {
-                        // For non-collection properties, perform the usual assignment.
-                        try
-                        {
-                            Type targetType = prop.PropertyType;
+                        Type targetType = prop.PropertyType;
 
-                            // Handle enum conversion.
-                            Type enumType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-                            if (enumType.IsEnum)
-                            {
-                                if (Enum.TryParse(enumType, value.ToString(), ignoreCase: true, out object enumValue))
-                                {
-                                    prop.SetValue(current, enumValue);
-                                    continue;
-                                }
-                            }
-                            else if (targetType == value.GetType() || targetType.IsAssignableFrom(value.GetType()))
-                            {
-                                prop.SetValue(current, value);
-                            }
-                            else
-                            {
-                                // Handle nullable types.
-                                if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                                {
-                                    targetType = Nullable.GetUnderlyingType(targetType);
-                                }
-
-                                object converted = Convert.ChangeType(value, targetType);
-                                prop.SetValue(current, converted);
-                            }
-                        }
-                        catch (Exception)
+                        // Handle enums (incl. nullable)
+                        Type enumType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                        if (enumType.IsEnum)
                         {
-                            // Swallow conversion exceptions to allow mapping to continue.
+                            if (Enum.TryParse(enumType, value.ToString(), ignoreCase: true, out object enumVal))
+                            {
+                                prop.SetValue(current, enumVal);
+                            }
+
+                            return;
                         }
+
+                        // Same type or assignable
+                        if (targetType == value.GetType() || targetType.IsAssignableFrom(value.GetType()))
+                        {
+                            prop.SetValue(current, value);
+                            return;
+                        }
+
+                        // Custom DateTime/DateTimeOffset bridge
+                        if (TrySpecialConvert(value, targetType, out var special))
+                        {
+                            prop.SetValue(current, special);
+                            return;
+                        }
+
+                        // Nullable<T> → strip wrapper for ChangeType
+                        if (targetType.IsGenericType &&
+                            targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        {
+                            targetType = Nullable.GetUnderlyingType(targetType);
+                        }
+
+                        object converted = Convert.ChangeType(value, targetType);
+                        prop.SetValue(current, converted);
+                    }
+                    catch
+                    {
+                        // Swallow conversion errors – leave property unset and keep mapping alive
                     }
                 }
                 else
                 {
-                    // For intermediate properties, retrieve or create the object instance.
+                    // Create intermediate object if null
                     object next = prop.GetValue(current);
                     if (next == null)
                     {
@@ -194,7 +204,7 @@ namespace DMapper.Helpers
                             next = Activator.CreateInstance(prop.PropertyType);
                             prop.SetValue(current, next);
                         }
-                        catch (Exception)
+                        catch
                         {
                             return;
                         }
@@ -357,14 +367,22 @@ namespace DMapper.Helpers
         /// </example>
         private static IList CreateAndMapCollection_V6(IEnumerable srcEnumerable, Type destElementType)
         {
-            var listType = typeof(List<>).MakeGenericType(destElementType);
-            var destList = (IList)Activator.CreateInstance(listType);
+            Type listType = typeof(List<>).MakeGenericType(destElementType);
+            IList destList = (IList)Activator.CreateInstance(listType);
+
             foreach (var srcElem in srcEnumerable)
             {
                 object destElem;
+
+                // Complex element → recursive map
                 if (srcElem != null && destElementType.IsClass && destElementType != typeof(string))
                 {
                     destElem = MapToObject_V6(srcElem, destElementType);
+                }
+                // Simple element → allow DateTime/Offset conversion before direct assign
+                else if (TrySpecialConvert(srcElem, destElementType, out var converted))
+                {
+                    destElem = converted;
                 }
                 else
                 {
@@ -463,5 +481,34 @@ namespace DMapper.Helpers
         }
 
         #endregion
+
+        private static bool TrySpecialConvert(object value, Type targetType, out object result)
+        {
+            result = null;
+            if (value == null) return false;
+
+            // Unwrap Nullable<T>
+            var nonNullTarget = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+            // DateTimeOffset --> DateTime  (choose the flavour you prefer)
+            if (value is DateTimeOffset dto && nonNullTarget == typeof(DateTime))
+            {
+                // dto.UtcDateTime  -> always UTC
+                // dto.LocalDateTime-> converts to local machine time
+                // dto.DateTime     -> keeps original clock‑time, drops offset
+                result = dto.UtcDateTime;
+                return true;
+            }
+
+            // DateTime --> DateTimeOffset
+            if (value is DateTime dt && nonNullTarget == typeof(DateTimeOffset))
+            {
+                // Here we assume the DateTime is in UTC; change the offset if you need local
+                result = new DateTimeOffset(dt, TimeSpan.Zero);
+                return true;
+            }
+
+            return false;
+        }
     }
 }
