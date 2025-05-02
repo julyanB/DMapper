@@ -13,15 +13,42 @@
         <RepositoryUrl>https://github.com/julyan97/DMapper</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>object-mapper reflection mapping copy nested-objects</PackageTags>
-        <PackageReleaseNotes>New Features &amp; Enhancements
-Collection Mapping Support: Introduced the ability to map collections (List&lt;T&gt;, T[], and other IEnumerable&lt;T&gt; implementations) seamlessly using the MapTo&lt;T&gt; extension method.
-Automatic Element Mapping: Each item in a source collection is individually mapped to the corresponding destination type, ensuring deep transformation support.
-Flexible Destination Types: Supports mapping to arrays, generic lists, and collections with constructors accepting IEnumerable&lt;T&gt;.
-Reflection-Based Mapping: Uses dynamic reflection to apply the appropriate MapTo&lt;T&gt; transformation to each element in the collection.
-Optimized FlattenResult to use V6 from V5</PackageReleaseNotes>
+        <PackageReleaseNotes>DMapper 2.1.2–Release Notes (May2025)
+
+NEW FEATURES
+• Automatic Date/Time bridge
+– Converts DateTimeOffset ↔ DateTime automatically, including inside collections, preserving UTC.
+• Per‑property value converters
+– New [ValueConverter] attribute. Attach any class that implements IPropertyValueConverter to a destination member for custom transforms (e.g., Unix epoch → DateTime).
+– Converters are instantiated once and cached.
+• Fluent‑API support
+– The new bridge and converters work transparently with builder‑style mappings.
+• Extended test suite
+– Added DateTimeConversionTests and PropertyConverterTests to cover the bridge, converters, and collection scenarios.
+
+IMPROVEMENTS
+• Centralised helper (TrySpecialConvert) for simple‑type fall‑backs, reducing reflection overhead.
+• Collection mapper now routes each element through the same conversion pipeline.
+• Converter instances are cached per destination property for better performance.
+
+FIXES
+• DateTimeOffset → DateTime mapping no longer fails silently; values are converted correctly.
+• Nullable‑enum fallback respects BindTo candidates before defaulting to property names.
+• Additional null‑checks and recursion guards in v6 re‑hydration.
+
+UPGRADE STEPS
+
+Pull the latest source (or update the NuGet package when available).
+
+No code changes are needed for existing mappings.
+
+To add a custom converter:
+[BindTo("EpochSeconds")]
+[ValueConverter(typeof(UnixEpochConverter))]
+public DateTime Timestamp { get; set; }</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.1.1</Version>
+        <Version>2.1.2</Version>
         <PackageIcon>D-Logo.png</PackageIcon>
         <PackageId>DSeries.DMapper.Core</PackageId>
     </PropertyGroup>
