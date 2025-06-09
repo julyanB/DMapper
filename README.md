@@ -1272,6 +1272,16 @@ var result = source.MapTo<List<DestinationType>>();
 
 ---
 
+## Performance Improvements (V7)
+
+The new V7 engine builds setter delegates for each destination type and stores
+them in `_delegateCache_V7`. Property chains for nested assignments are cached
+during delegate creation so that reflection is avoided on every mapping call.
+This delegate-based approach speeds up deep mappings—see
+`ComplexMappingBenchmarks.MapUsingV7` for a benchmark example.
+
+---
+
 ## License
 
 DMapper is licensed under the MIT License.
