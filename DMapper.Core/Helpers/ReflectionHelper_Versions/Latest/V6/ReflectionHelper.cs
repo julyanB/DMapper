@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,16 +16,6 @@ namespace DMapper.Helpers
 {
     public static partial class ReflectionHelper
     {
-        // Caches for mapping dictionaries and converter instances per destination type.
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, Dictionary<string, List<string>>> _mappingCache_V6 = new();
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, Dictionary<string, IDMapperPropertyConverter>> _converterCache_V6 = new();
-
-        /// <summary>Clears the version 6 caches.</summary>
-        public static void ClearV6Caches()
-        {
-            _mappingCache_V6.Clear();
-            _converterCache_V6.Clear();
-        }
         /// <summary>
         /// Performs version 6 mapping between a source and a destination object.
         /// This method:
@@ -70,11 +60,9 @@ namespace DMapper.Helpers
             FlattenResult srcFlatten = ObjectFlattener.Flatten(source, GlobalConstants.DefaultDotSeparator);
             var fixedSrc = srcFlatten.Properties; // alias
 
-            // 2) Build mapping + converter caches (cached per destination type)
-            Dictionary<string, List<string>> mappingDict =
-                _mappingCache_V6.GetOrAdd(typeof(TDestination), t => BuildMappingDictionary_V6(t));
-            var converterCache =
-                _converterCache_V6.GetOrAdd(typeof(TDestination), t => BuildConverterCache_V6(t));
+            // 2) Build mapping + converter caches
+            Dictionary<string, List<string>> mappingDict = BuildMappingDictionary_V6(typeof(TDestination));
+            var converterCache = BuildConverterCache_V6(typeof(TDestination));
 
             // 3) Direct mapping with per‑property converters
             foreach (var mapping in mappingDict)

@@ -1,4 +1,4 @@
-using DMapper.Core.Helpers;
+﻿using DMapper.Core.Helpers;
 
 namespace DMapper.Helpers;
 
