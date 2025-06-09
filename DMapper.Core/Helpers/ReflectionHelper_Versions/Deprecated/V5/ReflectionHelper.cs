@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using DMapper.Attributes;
 using DMapper.Constants;
 using DMapper.Helpers.Models;

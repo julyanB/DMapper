@@ -1,4 +1,4 @@
-namespace DMapper.Tests.Models.Attribute_MappingTests.Map_NonNullable_To_NonNullable_ShouldMapCorrectly;
+﻿namespace DMapper.Tests.Models.Attribute_MappingTests.Map_NonNullable_To_NonNullable_ShouldMapCorrectly;
 
 // Define two sample enums with matching values.
 public enum TestEnum21_1
