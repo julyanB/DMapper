@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Reflection;
 using DMapper.Attributes;
 using DMapper.Comparers;

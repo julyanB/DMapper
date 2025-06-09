@@ -33,7 +33,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V3 => ReflectionHelper.ReplacePropertiesRecursive_V3(destination, source),
                 DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
-                DMapperVersion.V6 or _=> ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source)
+                DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
+                _ => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source)
             };
 
             return result;
@@ -63,7 +64,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V3 => ReflectionHelper.ReplacePropertiesRecursive_V3(destination, source),
                 DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
-                DMapperVersion.V6 or _ => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source)
+                DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
+                _ => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source)
             };
         }
 
@@ -160,7 +162,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V3 => ReflectionHelper.ReplacePropertiesRecursive_V3(destination, source),
                 DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
-                DMapperVersion.V6 or _=> ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source)
+                DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
+                _ => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source)
             };
 
             return result;

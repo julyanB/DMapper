@@ -1,4 +1,4 @@
-﻿using DMapper.Extensions;
+using DMapper.Extensions;
 using DMapper.Tests.Models.Attribute_MappingTests.Map_NonNullable_To_NonNullable_ShouldMapCorrectly;
 using DMapper.Tests.Models.Attribute_MappingTests.MapTo_FallbackEnumMapping_ShouldRemainNullForNullableEnum_WhenSourceIsNull;
 using DMapper.Tests.Models.MappingTests.MapTo_AbsoluteBindTo_ShouldMapFullPathPropertyCorrectly;
