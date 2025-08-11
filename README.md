@@ -6,7 +6,7 @@ DMapper is a lightweight and efficient .NET object‑mapping library designed to
 
 ---
 
-## ✨ What’s new (2.2.0 – v8)
+## ✨ What’s new (2.2.1 – v8)
 
 | Area                    | Highlights                                                                                                                                                                                                               |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -16,7 +16,7 @@ DMapper is a lightweight and efficient .NET object‑mapping library designed to
 | Hybrid execution        | Complex value assignment paths still use v6’s reflection-safe setter internally for correctness, while simple assignments benefit from compiled delegates for speed.                                                     |
 | Safer `GetOrAdd` usage  | All `ConcurrentDictionary.GetOrAdd` calls now use lambda syntax (`t => ...`) instead of direct method groups when overloads/optional parameters exist, preventing `CS1503` errors.                                       |
 
-### Why v7 is faster
+### Why v8 is faster
 
 - **Plan compilation** – Expression trees build a single, optimized mapping delegate for each destination type at first use, avoiding repeated attribute scanning and mapping dictionary merges.
 - **Cached execution** – Getters/setters and converter lookups are cached per-type, eliminating most reflection calls in steady state.
