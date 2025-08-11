@@ -4,6 +4,30 @@ DMapper is a lightweight and efficient .NET object‑mapping library designed to
 
 ---
 
+---
+
+## ✨ What’s new (2.2.0 – v7)
+
+| Area                    | Highlights                                                                                                                                                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cache comparer fix      | `_mapCache` / `_convCache` now use `IEqualityComparer<Type>` to ensure type-based lookups are correct (no more `StringComparer.Ordinal` mismatch).                                                                       |
+| Setter delegate restore | Reintroduced `BuildSetter` to support `ConcurrentDictionary.GetOrAdd` calls without breaking complex assignment paths. Delegates call proven v6 `SetNestedValueDirect_V6` logic for arrays, collections, nullables, etc. |
+| Expression integration  | Introduced expression trees for compiled mapping _plans_ to cut per-map overhead. These are compiled once and reused, reducing runtime reflection calls for plan execution.                                              |
+| Hybrid execution        | Complex value assignment paths still use v6’s reflection-safe setter internally for correctness, while simple assignments benefit from compiled delegates for speed.                                                     |
+| Safer `GetOrAdd` usage  | All `ConcurrentDictionary.GetOrAdd` calls now use lambda syntax (`t => ...`) instead of direct method groups when overloads/optional parameters exist, preventing `CS1503` errors.                                       |
+
+### Why v7 is faster
+
+- **Plan compilation** – Expression trees build a single, optimized mapping delegate for each destination type at first use, avoiding repeated attribute scanning and mapping dictionary merges.
+- **Cached execution** – Getters/setters and converter lookups are cached per-type, eliminating most reflection calls in steady state.
+- **Hybrid safety** – Complex edge cases (arrays without default ctors, nested null parents, type conversions) still use the bullet-proof v6 assignment path, so test behavior stays identical.
+
+### Why not 100% expressions yet?
+
+While expressions can replace reflection for many cases, reproducing every complex path safely (especially for arrays, collection re-hydration, and `[ComplexBind]` scenarios) requires more work. v7 keeps correctness first, using expressions where safe and falling back to v6 where needed.
+
+---
+
 ## ✨ What’s new (2.1.2)
 
 | Area                 | Highlights                                                                                                                                                                                                                   |

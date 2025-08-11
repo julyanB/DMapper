@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using CommunityToolkit.Diagnostics;
 using DMapper.Enums;
 using DMapper.Helpers;
+using System.Collections;
 
 namespace DMapper.Extensions
 {
@@ -34,7 +30,9 @@ namespace DMapper.Extensions
                 DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
                 DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
-                _ => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source)
+                DMapperVersion.V7 => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source),
+                DMapperVersion.V8 or _ => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+
             };
 
             return result;
@@ -65,7 +63,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
                 DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
-                _ => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source)
+                DMapperVersion.V7 => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source),
+                DMapperVersion.V8 or _ => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
             };
         }
 
@@ -163,7 +162,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V4 => ReflectionHelper.ReplacePropertiesRecursive_V4(destination, source),
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
                 DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
-                _ => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source)
+                DMapperVersion.V7 => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source),
+                DMapperVersion.V8 or _ => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
             };
 
             return result;

@@ -13,49 +13,39 @@
         <RepositoryUrl>https://github.com/julyan97/DMapper</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>object-mapper reflection mapping copy nested-objects</PackageTags>
-        <PackageReleaseNotes>DMapper 2.1.2–Release Notes (May2025)
+        <PackageReleaseNotes>
 
-NEW FEATURES
-• Automatic Date/Time bridge
-– Converts DateTimeOffset ↔ DateTime automatically, including inside collections, preserving UTC.
-• Per‑property value converters
-– New [ValueConverter] attribute. Attach any class that implements IPropertyValueConverter to a destination member for custom transforms (e.g., Unix epoch → DateTime).
-– Converters are instantiated once and cached.
-• Fluent‑API support
-– The new bridge and converters work transparently with builder‑style mappings.
-• Extended test suite
-– Added DateTimeConversionTests and PropertyConverterTests to cover the bridge, converters, and collection scenarios.
+			## ✨ What’s new (2.2.0 – v7)
 
-IMPROVEMENTS
-• Centralised helper (TrySpecialConvert) for simple‑type fall‑backs, reducing reflection overhead.
-• Collection mapper now routes each element through the same conversion pipeline.
-• Converter instances are cached per destination property for better performance.
+			| Area                   | Highlights                                                                                                                                                                                                                 |
+			| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+			| Cache comparer fix     | `_mapCache` / `_convCache` now use `IEqualityComparer` to ensure type-based lookups are correct (no more `StringComparer.Ordinal` mismatch).                                                                         |
+| Setter delegate restore| Reintroduced `BuildSetter` to support `ConcurrentDictionary.GetOrAdd` calls without breaking complex assignment paths. Delegates call proven v6 `SetNestedValueDirect_V6` logic for arrays, collections, nullables, etc. |
+| Expression integration | Introduced expression trees for compiled mapping *plans* to cut per-map overhead. These are compiled once and reused, reducing runtime reflection calls for plan execution.                                               |
+| Hybrid execution       | Complex value assignment paths still use v6’s reflection-safe setter internally for correctness, while simple assignments benefit from compiled delegates for speed.                                                      |
+| Safer `GetOrAdd` usage | All `ConcurrentDictionary.GetOrAdd` calls now use lambda syntax (`t =&gt; ...`) instead of direct method groups when overloads/optional parameters exist, preventing `CS1503` errors.                                         |
 
-FIXES
-• DateTimeOffset → DateTime mapping no longer fails silently; values are converted correctly.
-• Nullable‑enum fallback respects BindTo candidates before defaulting to property names.
-• Additional null‑checks and recursion guards in v6 re‑hydration.
+### Why v7 is faster
 
-UPGRADE STEPS
+- **Plan compilation** – Expression trees build a single, optimized mapping delegate for each destination type at first use, avoiding repeated attribute scanning and mapping dictionary merges.
+- **Cached execution** – Getters/setters and converter lookups are cached per-type, eliminating most reflection calls in steady state.
+- **Hybrid safety** – Complex edge cases (arrays without default ctors, nested null parents, type conversions) still use the bullet-proof v6 assignment path, so test behavior stays identical.
 
-Pull the latest source (or update the NuGet package when available).
+### Why not 100% expressions yet?
 
-No code changes are needed for existing mappings.
+While expressions can replace reflection for many cases, reproducing every complex path safely (especially for arrays, collection re-hydration, and `[ComplexBind]` scenarios) requires more work. v7 keeps correctness first, using expressions where safe and falling back to v6 where needed.
 
-To add a custom converter:
-[BindTo("EpochSeconds")]
-[ValueConverter(typeof(UnixEpochConverter))]
-public DateTime Timestamp { get; set; }</PackageReleaseNotes>
+---
+		</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.1.2</Version>
+        <Version>2.2.0</Version>
         <PackageIcon>D-Logo.png</PackageIcon>
         <PackageId>DSeries.DMapper.Core</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-        <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
     </ItemGroup>
 
     <PropertyGroup>
