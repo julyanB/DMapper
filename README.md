@@ -1296,8 +1296,29 @@ var result = source.MapTo<List<DestinationType>>();
 
 ---
 
+## Performance Improvements (V7)
+
+The new V7 engine builds setter delegates for each destination type and stores
+them in `_delegateCache_V7`. Property chains for nested assignments are cached
+during delegate creation so that reflection is avoided on every mapping call.
+This delegate-based approach speeds up deep mappings—see
+`ComplexMappingBenchmarks.MapUsingV7` for a benchmark example.
+
+---
+
 ## License
 
 DMapper is licensed under the MIT License.
 
 Happy coding with DMapper! 🚀
+
+# Release 2.1.2
+
+DMapper 2.1.2 introduces several enhancements:
+
+- Automatic bridge for `DateTimeOffset` ↔ `DateTime` conversions (also works in collections and preserves UTC).
+- New `[ValueConverter]` attribute for per-property converters implementing `IPropertyValueConverter`.
+- Converter instances are cached per destination property for better performance.
+- Collection mapper now routes each element through the unified conversion pipeline.
+- Added `TrySpecialConvert` helper and expanded tests.
+- Fixes for nullable enums, DateTime conversions, and recursion guards.

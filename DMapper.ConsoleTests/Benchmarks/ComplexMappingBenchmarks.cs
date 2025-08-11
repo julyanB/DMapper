@@ -74,6 +74,12 @@ public class ComplexMappingBenchmarks
     }
 
     [Benchmark]
+    public ComplexDestination MapUsingV7()
+    {
+        return ReflectionHelper.ReplacePropertiesRecursive_V7(new ComplexDestination(), _source);
+    }
+
+    [Benchmark]
     public ComplexDestination MapUsingV8()
     {
         return ReflectionHelper.ReplacePropertiesRecursive_V8(new ComplexDestination(), _source);
