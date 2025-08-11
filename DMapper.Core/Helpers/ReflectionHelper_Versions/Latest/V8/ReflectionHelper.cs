@@ -14,7 +14,7 @@ using DMapper.Helpers.FluentConfigurations.Contracts;
 namespace DMapper.Helpers
 {
     /// <summary>
-    /// DMapper v7 (experimental): expression-compiled mappers.
+    /// DMapper V8 (experimental): expression-compiled mappers.
     ///
     /// Goals:
     ///  - Build a mapping plan once per (TSource, TDestination) and compile it.
@@ -27,7 +27,7 @@ namespace DMapper.Helpers
     /// </summary>
     public static partial class ReflectionHelper
     {
-        public static TDestination ReplacePropertiesRecursive_V7<TDestination, TSource>(
+        public static TDestination ReplacePropertiesRecursive_V8<TDestination, TSource>(
             TDestination destination, TSource source)
         {
             if (destination is null || source is null) return destination;
@@ -44,14 +44,14 @@ namespace DMapper.Helpers
         private static readonly ConcurrentDictionary<(Type Src, Type Dest), Action<object, object>> _compiledMapCache = new();
         private static readonly ConcurrentDictionary<(Type Type, string Path), Func<object, object>> _getterCache = new();
         private static readonly ConcurrentDictionary<(Type Type, string Path), Action<object, object>> _setterCache = new();
-        private static readonly ConcurrentDictionary<Type, Dictionary<string, List<string>>> _mapCacheV7 = new();
-        private static readonly ConcurrentDictionary<Type, Dictionary<string, IDMapperPropertyConverter>> _convCacheV7 = new();
+        private static readonly ConcurrentDictionary<Type, Dictionary<string, List<string>>> _mapCacheV8 = new();
+        private static readonly ConcurrentDictionary<Type, Dictionary<string, IDMapperPropertyConverter>> _convCacheV8 = new();
 
         private static Action<object, object> BuildCompiledMapper(Type srcType, Type destType)
         {
             // Build/resolve mapping and converter caches once per destination type
-            var mapping = _mapCacheV7.GetOrAdd(destType, BuildMappingDictionary_V7);
-            var converters = _convCacheV7.GetOrAdd(destType, BuildConverterCache_V7);
+            var mapping = _mapCacheV8.GetOrAdd(destType, BuildMappingDictionary_V8);
+            var converters = _convCacheV8.GetOrAdd(destType, BuildConverterCache_V8);
 
             // parameters: (object src, object dest)
             var srcObj = Expression.Parameter(typeof(object), "src");
@@ -156,7 +156,7 @@ namespace DMapper.Helpers
             return current;
         }
 
-        private static Dictionary<string, List<string>> BuildMappingDictionary_V7(Type destinationType)
+        private static Dictionary<string, List<string>> BuildMappingDictionary_V8(Type destinationType)
         {
             var mapping = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             BuildRec(destinationType, "", mapping, null, new HashSet<Type>());
@@ -233,7 +233,7 @@ namespace DMapper.Helpers
             }
         }
 
-        private static Dictionary<string, IDMapperPropertyConverter> BuildConverterCache_V7(
+        private static Dictionary<string, IDMapperPropertyConverter> BuildConverterCache_V8(
             Type destinationType)
         {
             string separator = GlobalConstants.DefaultDotSeparator;
