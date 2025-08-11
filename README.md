@@ -1,12 +1,12 @@
 # DMapper
 
-DMapper is a lightweight and efficient .NET object‑mapping library designed to simplify object transformation, deep copying, and recursive property binding using advanced reflection techniques. The latest version (DMapper **v6**) uses a flattened‑object approach that leverages a flattening engine with `Next`/`Previous` pointers for each flattened property. This enables precise control over both relative and absolute property mappings via custom attributes.
+DMapper is a lightweight and efficient .NET object‑mapping library designed to simplify object transformation, deep copying, and recursive property binding using advanced reflection techniques. The latest version (DMapper **v8**) uses a flattened‑object approach that leverages a flattening engine with `Next`/`Previous` pointers for each flattened property. This enables precise control over both relative and absolute property mappings via custom attributes.
 
 ---
 
 ---
 
-## ✨ What’s new (2.2.0 – v7)
+## ✨ What’s new (2.2.0 – v8)
 
 | Area                    | Highlights                                                                                                                                                                                                               |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
