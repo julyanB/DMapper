@@ -16,18 +16,19 @@
         <PackageReleaseNotes>
 
 			<PackageReleaseNotes>
-				2.2.1 (v8):
-				- Fixed cache key comparer: _mapCache / _convCache now use IEqualityComparer&lt;Type&gt; for correct type-based lookups.
-				- Restored BuildSetter to support ConcurrentDictionary.GetOrAdd without breaking complex assignment paths. Setter delegates call proven v6 SetNestedValueDirect_V6 for arrays, collections, nullables, etc.
-				- Integrated expression trees for compiled mapping plans, cutting per-map overhead by avoiding repeated reflection calls at runtime.
-				- Adopted hybrid execution model: simple assignments use compiled delegates for speed, complex cases fall back to v6’s safe setter logic for correctness.
-				- Updated all GetOrAdd calls to use lambda syntax to avoid CS1503 compiler errors with method groups and overloads.
+
+### Why v9 is faster
+
+- **Plan compilation** - A delegate plan is built once per `TSource` to `TDestination` pair, capturing getter chains, converters, and setters.
+- **Reflection-free hot path** - Cached property chains access members without repeated `GetProperty` calls; setters invoke prebuilt delegates.
+- **Hybrid safety** - When a scenario needs the more forgiving v6 setter (arrays without default constructors, nested null parents, etc.) the plan delegates straight to it, preserving behaviour.
+
 			</PackageReleaseNotes>
 
 		</PackageReleaseNotes>
         <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
-        <Version>2.2.1</Version>
+        <Version>2.3.0</Version>
         <PackageIcon>D-Logo.png</PackageIcon>
         <PackageId>DSeries.DMapper.Core</PackageId>
     </PropertyGroup>

@@ -6,6 +6,25 @@ DMapper is a lightweight and efficient .NET object‑mapping library designed to
 
 ---
 
+## Latest release (2.3.0 / v9)
+
+| Area | Highlights |
+| --- | --- |
+| Plan engine (new) | First-hit plan builds cache property chains and setter delegates, then executes via pure delegates (no expression invocation per map). |
+| Getter optimisation | V9 caches `PropertyInfo` chains per source path, eliminating repeated `GetProperty` lookups for every mapped value. |
+| Cache comparer | Mapping and converter caches key by `Type` using `IEqualityComparer<Type>` for consistent lookups across runtimes. |
+| Setter delegates | Cached setters still reuse the resilient v6 `SetNestedValueDirect_V6` pipeline for complex assignment flows. |
+| Hybrid execution | Complex cases continue to fall back to v6 logic automatically; simple paths now run through the V9 delegate plan. |
+| Collection mapping | Collection `MapTo<TDestination>` uses cached element mappers, avoiding reflection `Invoke` when projecting enumerables. |
+
+### Why v9 is faster
+
+- **Plan compilation** - A delegate plan is built once per `TSource` to `TDestination` pair, capturing getter chains, converters, and setters.
+- **Reflection-free hot path** - Cached property chains access members without repeated `GetProperty` calls; setters invoke prebuilt delegates.
+- **Hybrid safety** - When a scenario needs the more forgiving v6 setter (arrays without default constructors, nested null parents, etc.) the plan delegates straight to it, preserving behaviour.
+
+---
+
 ## ✨ What’s new (2.2.1 – v8)
 
 | Area                    | Highlights                                                                                                                                                                                                               |

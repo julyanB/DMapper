@@ -31,7 +31,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
                 DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
                 DMapperVersion.V7 => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source),
-                DMapperVersion.V8 or _ => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+                DMapperVersion.V8 => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+                _ => ReflectionHelper.ReplacePropertiesRecursive_V9(destination, source),
 
             };
 
@@ -64,7 +65,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
                 DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
                 DMapperVersion.V7 => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source),
-                DMapperVersion.V8 or _ => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+                DMapperVersion.V8 => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+                _ => ReflectionHelper.ReplacePropertiesRecursive_V9(destination, source),
             };
         }
 
@@ -163,7 +165,8 @@ namespace DMapper.Extensions
                 DMapperVersion.V5 => ReflectionHelper.ReplacePropertiesRecursive_V5(destination, source),
                 DMapperVersion.V6 => ReflectionHelper.ReplacePropertiesRecursive_V6(destination, source),
                 DMapperVersion.V7 => ReflectionHelper.ReplacePropertiesRecursive_V7(destination, source),
-                DMapperVersion.V8 or _ => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+                DMapperVersion.V8 => ReflectionHelper.ReplacePropertiesRecursive_V8(destination, source),
+                _ => ReflectionHelper.ReplacePropertiesRecursive_V9(destination, source),
             };
 
             return result;
